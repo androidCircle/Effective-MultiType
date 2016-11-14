@@ -646,7 +646,7 @@ adapter.notifyDataSetChanged();
  
   <img src="http://ww3.sinaimg.cn/large/86e2ff85jw1f9a7tek74lj21401z414s.jpg" width=270 height=486/> <img src="http://ww1.sinaimg.cn/mw1024/86e2ff85jw1f9a7z4yqlkj21401z4n8r.jpg" width=270 height=486/>
   
-  > 注：在示例中我们并没有示范服务端 JSON 数据转为我们定义的 Weibo 对象过程（很快会补足），实际上对于完整链路，这个过程是需要做数据转换，我们需要在 `Weibo` 层加一个 `type` 或 `describe` 字段用于描述微博内容类型，然后再将微博内容的 JSON 文本转为具体微博内容对象交给 Weibo. 
+  > 注：以上我们并没有提到服务端 JSON 数据转为我们定义的 Weibo 对象过程，实际上对于完整链路，这个过程是需要做数据转换，我们需要在 `WeiboContent` 层加一个 `type` 或 `describe` 字段用于描述微博内容类型，然后再将微博内容的 JSON 文本转为具体微博内容对象交给 Weibo. 这个内容建议直接阅读这个 sample 的 `WeiboContentDeserializer` 源码，我利用了一种很简单又巧妙的方式，在 JSON 解析底层便进行抽象数据具体化，使得客户端和服务端都能够轻松适应这种微博和微博内容嵌套关系。
   
 - [drakeet/about-page](https://github.com/drakeet/about-page)
 
