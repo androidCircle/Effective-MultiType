@@ -2,7 +2,7 @@
 
 在开发我的 **[TimeMachine](https://github.com/drakeet/TimeMachine)** 时，我有一个复杂的聊天页面，于是我设计了我的类型池系统，它是完全解耦的，因此我能够轻松将它抽离出来分享，并给它取名为 **MultiType**.
 
-从前，**比如我们写一个类似微博列表页面**，这样的列表是十分复杂的：有纯文本的、带转发原文的、带图片的、带视频的、带文章的等等，甚至穿插一条可以横向滑动的好友推荐条目。不同的 Item 类型众多，而且随着业务发展，还会更多。如果我们使用传统的开发方式，经常要做一些繁琐的工作，代码可能都堆积在一个 `Adapter` 中：我们需要覆写 `RecyclerView.Adapter` 的 `getItemViewType` 方法，罗列一些 `type` 整型常量，并且 `ViewHolder` 转型、绑定数据也比较麻烦。一旦产品需求有变，或者产品设计说需要增加一种新的 Item 类型，我们需要去代码堆里找到我们原来的逻辑去修改，或者找到正确的位置去增加代码。这些过程都比较繁琐，侵入较强，需要小心翼翼，以免改错影响到其他地方。
+从前，**比如我们写一个类似微博列表页面**，这样的列表是十分复杂的：有纯文本的、带转发原文的、带图片的、带视频的、带文章的等等，甚至穿插一条可以横向滑动的好友推荐条目。不同的 item 类型众多，而且随着业务发展，还会更多。如果我们使用传统的开发方式，经常要做一些繁琐的工作，代码可能都堆积在一个 `Adapter` 中：我们需要覆写 `RecyclerView.Adapter` 的 `getItemViewType` 方法，罗列一些 `type` 整型常量，并且 `ViewHolder` 转型、绑定数据也比较麻烦。一旦产品需求有变，或者产品设计说需要增加一种新的 item 类型，我们需要去代码堆里找到我们原来的逻辑去修改，或者找到正确的位置去增加代码。这些过程都比较繁琐，侵入较强，需要小心翼翼，以免改错影响到其他地方。
 
 现在好了，我们有了 **MultiType**，简单来说，**MultiType 就是一个多类型列表视图的中间分发框架，它能帮助你快速并且清晰地开发一些复杂的列表页面。**它本是为聊天页面开发的，聊天页面的消息类型也是有大量不同种类，并且新增频繁，而 **MultiType** 能够轻松胜任，代码模块化，随时可拓展新的类型进入列表当中。它内建了 `类型` - `View` 的复用池系统，支持 `RecyclerView`，使用简单灵活，令代码清晰、拥抱变化。
 
@@ -70,7 +70,7 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:2.2.1'
+    compile 'me.drakeet.multitype:multitype:2.2.2'
 }
 ```
 
@@ -78,7 +78,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:2.2.1', {
+    compile('me.drakeet.multitype:multitype:2.2.2', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
@@ -87,12 +87,10 @@ dependencies {
 
 ## 使用
 
-**Step 1**. 创建一个 `class implements Item`，它将是你的数据类型或 Java bean/model. 
-
- 这是一个类似 Java `Serializable` 接口，只要显式 `implements` 即可，除此之外什么都不用做。它的作用是让 MultiType 把你的所有实体类都视为 `Item` 接口，而且由于它仅是个接口，你仍然可以随意安排你的继承关系。示例如下：
+**Step 1**. 创建一个 `class`，它将是你的数据类型或 Java bean/model. 对这个类的内容没有任何限制。示例如下：
 
 ```java
-public class Category implements Item {
+public class Category {
 
     @NonNull public String text;
 
@@ -142,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MultiTypeAdapter adapter;
 
-    /* Items 等价于 ArrayList<Item> */
+    /* Items 等价于 ArrayList<Object> */
     private Items items;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -187,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
 - 要直观，使用起来能令项目代码更清晰、模块化
 
-  **MultiType** 提供的 `ItemViewProvider` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，手动写一个新的 `ItemViewProvider` 需要提供了 类型 泛型，虽然略微有点儿麻烦，但能带来一些好处，指定泛型之后，我们不再需要自己做强制转型，而且代码能够显式表明 `ItemViewProvider` 和 `Item class` 的对应关系，简单直观。另外，现在我们有 **MultiTypeTemplates** 插件来自动生成代码，这个过程变得更加顺滑简单。
+  **MultiType** 提供的 `ItemViewProvider` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，手动写一个新的 `ItemViewProvider` 需要提供了 类型 泛型，虽然略微有点儿麻烦，但能带来一些好处，指定泛型之后，我们不再需要自己做强制转型，而且代码能够显式表明 `ItemViewProvider` 和 item `class` 的对应关系，简单直观。另外，现在我们有 **MultiTypeTemplates** 插件来自动生成代码，这个过程变得更加顺滑简单。
 
 
 # 高级用法
@@ -196,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
 
 ## 使用 MultiTypeTemplates 插件自动生成代码
 
-在基础用法中，我们了通过 3 个步骤完成 **MultiType** 的初次接入使用，实际上这个过程可以更加简化，**MultiType** 提供了 Android Studio 插件来自动生成代码：**MultiTypeTemplates**，源码也是开源的，[https://github.com/drakeet/MultiTypeTemplates](https://github.com/drakeet/MultiTypeTemplates)，不仅提供了一键生成 `Item` 和 `ItemViewProvider`，而且**是一个很好的利用代码模版自动生成代码的示例。**其中使用到了官方提供的代码模版 API，也用到了我自己发明的更灵活修改模版内容的方法，有兴趣做这方面插件的可以看看。
+在基础用法中，我们了通过 3 个步骤完成 **MultiType** 的初次接入使用，实际上这个过程可以更加简化，**MultiType** 提供了 Android Studio 插件来自动生成代码：**MultiTypeTemplates**，源码也是开源的，[https://github.com/drakeet/MultiTypeTemplates](https://github.com/drakeet/MultiTypeTemplates)，不仅提供了一键生成 item 类文件和 `ItemViewProvider`，而且**是一个很好的利用代码模版自动生成代码的示例。**其中使用到了官方提供的代码模版 API，也用到了我自己发明的更灵活修改模版内容的方法，有兴趣做这方面插件的可以看看。
 
 话说回来，安装和使用 **MultiTypeTemplates** 非常简单：
 
@@ -204,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
 
 ![](http://ww4.sinaimg.cn/large/86e2ff85gw1f935l0kwilj21kw0t3akm.jpg)
 
-**Step 2.** 安装完成后，重启 Android Studio. 右键点击你的 package，选择 `New` -> `MultiType Item`，然后输入你的 `Item` 名字，它就会自动生成 `Item` and `ItemViewProvider` 文件和代码。
+**Step 2.** 安装完成后，重启 Android Studio. 右键点击你的 package，选择 `New` -> `MultiType Item`，然后输入你的 item 名字，它就会自动生成 item 模型类 和 `ItemViewProvider` 文件和代码。
 
 比如你输入的是 "Category"，它就会自动生成 `Category.java` 和 `CategoryViewProvider.java`.
 
@@ -380,7 +378,7 @@ public class MessageAdapter extends MultiTypeAdapter {
     }
 
 
-    @NonNull @Override public Class onFlattenClass(@NonNull Item message) {
+    @NonNull @Override public Class onFlattenClass(@NonNull Object message) {
         return ((Message) message).content.getClass();
     }
 }
@@ -462,7 +460,7 @@ public abstract class MessageViewProvider<C extends Content, V extends RecyclerV
 **MultiType** 天生就适合实现类似 Google Play 或 iOS App Store 那样复杂的首页列表，这种页面通常会在垂直列表中嵌套横向列表，其实横向列表我们完全可以把它视为一种 `Item` 类型，这个 item 持有一个列表数据和当前横向列表滑动到的位置，类似这样：
 
 ```java
-public class PostList implements Item {
+public class PostList {
 
     public final List<Post> posts;
     public int currentPosition;
@@ -563,12 +561,12 @@ public class MultiGridActivity extends MenuBaseActivity {
 
 ## 数据扁平化处理
 
-在一个**垂直** `RecyclerView` 中，`Item` 们都是同级的，没有任何嵌套关系，但我们的数据结构往往存在嵌套关系，比如 `Post` 内部包含了 `Comment`s 数据，或换句话说 `Post` 嵌套了 `Comment`，就像微信朋友圈一样，"动态" 伴随着 "评论"。那么如何把 非扁平化 的数据排布在 扁平 的列表中呢？必然需要一个_数据扁平化处理_的过程，就像 `ListView` 的数据需要一个 `Adapter` 来适配，`Adapter` 就像一个油漏斗，把油引入瓶子中。我们在面对嵌套数据结构的时候，可以采用如下的扁平化处理，关于扁平化这个词，不必太纠结，简单说，就是把嵌套数据都拉出来，摊平，让 `Comment` 和 `Post` 同级，最后把它们都 add 进同一个 `Items` 容器，交给 `MultiTypeAdapter`. 示例：
+在一个**垂直** `RecyclerView` 中，item 们都是同级的，没有任何嵌套关系，但我们的数据结构往往存在嵌套关系，比如 `Post` 内部包含了 `Comment`s 数据，或换句话说 `Post` 嵌套了 `Comment`，就像微信朋友圈一样，"动态" 伴随着 "评论"。那么如何把 非扁平化 的数据排布在 扁平 的列表中呢？必然需要一个_数据扁平化处理_的过程，就像 `ListView` 的数据需要一个 `Adapter` 来适配，`Adapter` 就像一个油漏斗，把油引入瓶子中。我们在面对嵌套数据结构的时候，可以采用如下的扁平化处理，关于扁平化这个词，不必太纠结，简单说，就是把嵌套数据都拉出来，摊平，让 `Comment` 和 `Post` 同级，最后把它们都 add 进同一个 `Items` 容器，交给 `MultiTypeAdapter`. 示例：
 
 假设：你的 `Post` 是这样的：
 
 ```java
-public class Post implements Item {
+public class Post {
 
     public String content;
     public List<Comment> comments; 
@@ -578,7 +576,7 @@ public class Post implements Item {
 假设：你的 `Comment` 是这样的：
 
 ```java
-public class Comment implements Item {
+public class Comment {
 
     public String content;
 }
@@ -589,7 +587,7 @@ public class Comment implements Item {
 ```json
 [
     {
-        "content":"I have released the MultiType v2.2.1", 
+        "content":"I have released the MultiType v2.2.2", 
         "comments":[
             {"content":"great"},
             {"content":"I love your post!"}
@@ -601,8 +599,8 @@ public class Comment implements Item {
 那么你的 JSON 转成 Java Bean 之后，你拿到手应该是个 `List<Post> posts` 对象，现在我们写一个扁平化处理的方法：
 
 ```java
-private List<Item> flattenData(List<Post> posts) {
-    final List<Item> items = new ArrayList<>();
+private List<Object> flattenData(List<Post> posts) {
+    final List<Object> items = new ArrayList<>();
     for (Post post : posts) {
         /* 将 post 加进 items，Provider 内部拿到它的时候，
          * 我们无视它的 comments 内容即可 */
@@ -630,9 +628,9 @@ adapter.notifyDataSetChanged();
   
 - [仿造**微博**的数据结构和二级 ViewProvider](https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/weibo)
 
-  这是一个类似微博数据结构的示例，数据两层结构，Item 也是两层结构：一层框架（包含头像用户名等），一层 content view(微博内容)，内容嵌套于框架中。微博的每一条微博 Item 都包含了这样两层嵌套关系，这样做的好处是，你不必每个 Item 都去重复制造一遍外层框架。
+  这是一个类似微博数据结构的示例，数据两层结构，Item 也是两层结构：一层框架（包含头像用户名等），一层 content view(微博内容)，内容嵌套于框架中。微博的每一条微博 item 都包含了这样两层嵌套关系，这样做的好处是，你不必每个 item 都去重复制造一遍外层框架。
   
-  或者换一个比喻，就像聊天消息，一条聊天消息也是两层的，一层头像、用户名、聊天气泡框，一层你的文字、图片等。另外，每一种消息都有左边和右边的样式，分别对应别人发来的消息和你发出的消息。如果左边算一种，右边又算一种，就是比较不好的设计了，会导致布局内容重复、冗余，修改操作都要做两遍。最好的方案是让他们视被为同一种类型，然后在 Item 框层次进行左右边判断和框架相关数据绑定。
+  或者换一个比喻，就像聊天消息，一条聊天消息也是两层的，一层头像、用户名、聊天气泡框，一层你的文字、图片等。另外，每一种消息都有左边和右边的样式，分别对应别人发来的消息和你发出的消息。如果左边算一种，右边又算一种，就是比较不好的设计了，会导致布局内容重复、冗余，修改操作都要做两遍。最好的方案是让他们视被为同一种类型，然后在 item 框层次进行左右边判断和框架相关数据绑定。
   
   我提供的这个二级 `ViewProvider` 示例便是这样的两层结构。它能够让你每次新增加一个类型，只要实现内容即可，框不应该重复实现。
   
@@ -650,7 +648,7 @@ adapter.notifyDataSetChanged();
   
 - [drakeet/about-page](https://github.com/drakeet/about-page)
 
-  一个 Material Design 的关于页面，核心基于 MultiType，包含了多种 `Item`s，美观，容易使用。
+  一个 Material Design 的关于页面，核心基于 MultiType，包含了多种 items，美观，容易使用。
 
   ![](http://ww2.sinaimg.cn/large/86e2ff85gw1f93gq2tevbj21700pcjyp.jpg)
 
