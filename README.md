@@ -38,7 +38,7 @@
   - Q: 为什么不全然使用全局类型池？
   - Q: 觉得 MultiType 不够精简，应该怎么做？
   - Q: 在 `ItemViewProvider` 中如何拿到 `Context` 对象？  
-  - Q: 如果想在 `ItemViewProvider` 中获取到 item position，应该怎么做？
+  - Q: 如何在 `ItemViewProvider` 中获取到 item position？
 - [感谢](#感谢)
 - [引用文献](#引用文献)
 
@@ -71,7 +71,7 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:2.2.2'
+    compile 'me.drakeet.multitype:multitype:2.3.0'
 }
 ```
 
@@ -79,7 +79,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:2.2.2', {
+    compile('me.drakeet.multitype:multitype:2.3.0', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
@@ -697,15 +697,10 @@ adapter.notifyDataSetChanged();
   
   总而言之，拿到 `Context` 对象非常简单，只要你能拿到一个 `View` 对象，调用 `view.getContext()` 即可。另外，也可以参考 _[与 provider 通讯](#与-viewprovider-通讯)_ 章节，我们可以很方便地给 `provider` 传递任何对象进去，包括 `Context` 对象。
   
-- **Q：如果想在 `ItemViewProvider` 中获取到 item `position`，应该怎么做？**
+- **Q：如何在 `ItemViewProvider` 中获取到 item position？**
 
-  A: 这个问题其实我们在 [《我们是否需要传递 position 到 provider 层面？》](https://github.com/drakeet/MultiType/issues/36) issue 中讨论过，一开始我找到许多理由来支持 "不需要"：
-
-  我觉得是不需要，首先几乎所有需要 position 的需求，都可以 以不需要 position 的方式实现；其次，position 造成了耦合、对外依赖；而且，因为我们的 Items 容器中可能有多种类型的 items，如果直接取在 Items 中的位置，这是没有意义的，我们需要的是它们在同类中的位置；最后，如果你实在需要 position，完全可以通过继承源码来实现，MultiType 几乎所有的部件都是可拓展可替换的，我们不应该直接去修改源码。
-
-  但实际上有一种情况下很可能是需要的，就是当 item type 只有一种的时候，于是我继承了 `MultiTypeAdapter` 非常容易地自行传递了 position，如图。如我的例子，position 主要用于判断是否是第一个 item，如果是，将 item 的顶部加上圆角度数：
-  ![snip20161208_6](https://cloud.githubusercontent.com/assets/5214214/21008160/6b1a0c3e-bd7b-11e6-84ac-84131c483bb3.png)
-  
+  A: 只需要在你的 `ItemViewProvider` 子类里调用 `getPosition()` 方法即可(@since v2.3.0)。
+  
 # 感谢
 
 在 **MultiType** 开发维护过程中，很多朋友给了我很多反馈，我也非常乐意于与大家交流，有问必答，因为这是一个难得不错的项目，它比较接近我心中对于一个完美项目的要求：设计精巧，代码干净漂亮。
