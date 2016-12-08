@@ -700,7 +700,7 @@ adapter.notifyDataSetChanged();
 - **Q：如何在 `ItemViewProvider` 中获取到 item position？**
 
   A: 只需要在你的 `ItemViewProvider` 子类里调用 `getPosition()` 方法即可(@since v2.3.0)。
-  
+
 # 感谢
 
 在 **MultiType** 开发维护过程中，很多朋友给了我很多反馈，我也非常乐意于与大家交流，有问必答，因为这是一个难得不错的项目，它比较接近我心中对于一个完美项目的要求：设计精巧，代码干净漂亮。
