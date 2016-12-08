@@ -37,8 +37,8 @@
   - Q: 使用全局类型的话，只能是在 Application 中进行注册吗？
   - Q: 为什么不全然使用全局类型池？
   - Q: 觉得 MultiType 不够精简，应该怎么做？
-  - Q: 在 `ItemViewProvider` 中如何拿到 `Context` 对象？
-  - Q: 如果想在 `ItemViewProvider` 中获取到 item position，应该怎么做？
+  - Q: 在 `ItemViewProvider` 中如何拿到 `Context` 对象？  
+  - Q: 如果想在 `ItemViewProvider` 中获取到 item position，应该怎么做？
 - [感谢](#感谢)
 - [引用文献](#引用文献)
 
