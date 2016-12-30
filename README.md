@@ -71,7 +71,7 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:2.3.0'
+    compile 'me.drakeet.multitype:multitype:2.3.3'
 }
 ```
 
@@ -79,7 +79,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:2.3.0', {
+    compile('me.drakeet.multitype:multitype:2.3.3', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
@@ -263,8 +263,7 @@ public class LeakActivity extends Activity {
 
 **MultiType** 天然支持一个类型对应多个 `ViewProvider`，但仅限于在不同的列表中。比如你在 `adapter1` 中注册了 `Post.class` 对应 `SinglePostViewProvider`，在另一个 `adapter2` 中注册了 `Post.class` 对应 `PostDetailViewProvider`，这便是一对多的场景。只要是在不同的局部类型池中，无论如何都不会相互干扰，都是允许的。
 
-而对于在 同一个列表中 一对多的问题，首先这种场景非常少见，再者不管支不支持一对多，开发者都要去判断哪个时候运用哪个 `ViewProvider`，这是逃不掉的，否则程序就无所适从了。因此，**MultiType** 不去特别解决这个问题，**如果要实现同一个列表中一对多，只要空继承你的类型，然后把它视为新的类型，注册到你的类型池中即可**。
-
+而对于在 同一个列表中 一对多的问题，首先这种场景非常少见，再者不管支不支持一对多，开发者都要去判断哪个时候运用哪个 `ViewProvider`，这是逃不掉的，否则程序就无所适从了。因此，**MultiType** 不去特别解决这个问题，如果要实现同一个列表中一对多，只要空继承你的类型，然后把它视为新的类型，注册到你的类型池中即可。**或者参考我的"一对多"示例：https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/one2many 这个示例中，我使用了一种极其简单清晰的方式实现了一对多，并且支持 int type 来描述某个 "一" 该对应哪个 provider.**
 
 ## 与 `ViewProvider` 通讯
 
