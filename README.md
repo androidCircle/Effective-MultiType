@@ -71,7 +71,7 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:2.3.4'
+    compile 'me.drakeet.multitype:multitype:2.3.5'
 }
 ```
 
@@ -79,7 +79,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:2.3.4', {
+    compile('me.drakeet.multitype:multitype:2.3.5', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
@@ -700,7 +700,7 @@ adapter.notifyDataSetChanged();
   
 - **Q：如何在 `ItemViewProvider` 中获取到 item position？**
 
-  A: 从 v2.3.0 版本开始，只需要在你的 `ItemViewProvider` 子类里调用 `getPosition()` 方法即可。如果低于 v2.3.0 版本，可以调用 `holder.getAdapterPosition()` 获得同样结果。
+  A: 从 v2.3.5 版本开始，只需要在你的 `ItemViewProvider` 子类里调用 `getPosition(holder)` 方法即可。如果低于 v2.3.5 版本，可以调用 `holder.getAdapterPosition()` 获得同样结果。
 
 # 感谢
 
