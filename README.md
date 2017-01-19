@@ -71,7 +71,7 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:2.3.5'
+    compile 'me.drakeet.multitype:multitype:2.4.0'
 }
 ```
 
@@ -79,7 +79,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:2.3.5', {
+    compile('me.drakeet.multitype:multitype:2.4.0', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MultiTypeAdapter adapter;
 
-    /* Items 等价于 ArrayList<Object> */
+    /* Items 等同于 ArrayList<Object> */
     private Items items;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -149,22 +149,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list);
 
-        items = new Items();
-        adapter = new MultiTypeAdapter(items);
+        adapter = new MultiTypeAdapter();
 
         /* 注册类型和 View 的对应关系 */
         adapter.register(Category.class, new CategoryViewProvider());
         adapter.register(Song.class, new SongViewProvider());
+        recyclerView.setAdapter(adapter);
 
         /* 模拟加载数据，也可以稍后再加载，然后使用
          * adapter.notifyDataSetChanged() 刷新列表 */
+        items = new Items();
         for (int i = 0; i < 20; i++) {
             items.add(new Category("Songs"));
             items.add(new Song("小艾大人", R.drawable.avatar_dakeet));
             items.add(new Song("许岑", R.drawable.avatar_cen));
         }
-
-        recyclerView.setAdapter(adapter);
+        adapter.setItems(items);
     }
 }
 ```
