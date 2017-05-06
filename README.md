@@ -18,9 +18,8 @@
 - [设计思想](#设计思想)
 - [高级用法](#高级用法)
   - [使用 MultiTypeTemplates 插件自动生成代码](#使用-multitypetemplates-插件自动生成代码)
+  - [一个类型对应多个 ItemViewBinder](#一个类型对应多个-itemviewbinder)
   - [使用 全局类型池](#使用-全局类型池) 
-  - []()
-  [一个类型对应多个 ItemViewBinder](#一个类型对应多个-itemviewbinder)
   - [与 ItemViewBinder 通讯](#与-itemviewbinder-通讯)
   - [使用断言，比传统 Adapter 更加易于调试](#使用断言比传统-adapter-更加易于调试)
   - [支持 Google AutoValue](#支持-google-autovalue)
@@ -212,16 +211,6 @@ public class MainActivity extends AppCompatActivity {
 特别方便，相信你会很喜欢它。未来这个插件也将会支持自动生成布局文件，这是目前欠缺的，但不要紧，其实 AS 在这方面已经很方便了，对布局 `R.layout.item_category` 使用 `alt + enter` 快捷键即可自动生成布局文件。
 
 
-## 使用 全局类型池
-
-**MultiType** 在 3.0 版本之前一直是支持全局类型池的，你可以往一个全局类型池中 register 类型和 view binder，然后让你的各个 `MultiTypeAdapter` 都能使用它。
-
-但在 **MultiType** 3.0 之后，我们废弃并删除了内置的全局类型池。原因在于全局类型池容易对全局产生不可见影响，比如你注册了一堆全局类型关系并在多处引用它，某一天你的伙伴不小心修改了全局类型池的某个内容，将导致所有使用的地方皆受到变化，是我们不希望发生的。一个好的模块，应该是高内聚、自包含的，如果过多下放权力到外围，很容易遭受破坏或影响。
-
-另外，全局类型池一般都是 static 形式的，如果我们给这个 static 容器传递了 `Activity` 或 `Context` 对象，而没有在退出时释放，就容易造出内存泄漏，这对新手来说很容易触犯。
-
-因此我们删除了内置的全局类型池，当你创建一个 `MultiTypeAdapter` 对象时，默认情况下，它内部会自动创建一个局部类型池以供你接下来注册类型。当然了，如果你实在需要它，完全可以自己创建一个 static 的 `MultiTypePool`，然后通过 `MultiTypeAdapter#registerAll(pool)` 将这个类型池传入，以此达到多个地方共同使用。
-
 ## 一个类型对应多个 `ItemViewBinder`
 
 **MultiType** 天然支持一个类型对应多个 `ItemViewBinder`，注册方式也很简单，如下：
@@ -266,6 +255,17 @@ adapter.register(Data.class).to(
 这个方案具有很好的性能表现，而且可谓十分直观。另外，我使用了 `@CheckResult` 注解来让编译器督促开发者一定要完整调用方法链才不至于出错。
 
 更详细的"一对多"示例可以参考我的 sample 源码：https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/one2many 
+
+## 使用 全局类型池
+
+**MultiType** 在 3.0 版本之前一直是支持全局类型池的，你可以往一个全局类型池中 register 类型和 view binder，然后让你的各个 `MultiTypeAdapter` 都能使用它。
+
+但在 **MultiType** 3.0 之后，我们废弃并删除了内置的全局类型池。原因在于全局类型池容易对全局产生不可见影响，比如你注册了一堆全局类型关系并在多处引用它，某一天你的伙伴不小心修改了全局类型池的某个内容，将导致所有使用的地方皆受到变化，是我们不希望发生的。一个好的模块，应该是高内聚、自包含的，如果过多下放权力到外围，很容易遭受破坏或影响。
+
+另外，全局类型池一般都是 static 形式的，如果我们给这个 static 容器传递了 `Activity` 或 `Context` 对象，而没有在退出时释放，就容易造出内存泄漏，这对新手来说很容易触犯。
+
+因此我们删除了内置的全局类型池，当你创建一个 `MultiTypeAdapter` 对象时，默认情况下，它内部会自动创建一个局部类型池以供你接下来注册类型。当然了，如果你实在需要它，完全可以自己创建一个 static 的 `MultiTypePool`，然后通过 `MultiTypeAdapter#registerAll(pool)` 将这个类型池传入，以此达到多个地方共同使用。
+
 
 ## 与 `ItemViewBinder` 通讯
 
