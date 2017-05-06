@@ -382,7 +382,7 @@ MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个�
 
 - **下拉刷新：**
 
-  对于下拉刷新，`Android` 官方提供了 `support.v4` `SwipeRefreshLayout`，在 `Activity` 层面，可以拿到 `SwipeRefreshLayout` 调用 `setOnRefreshListener` 设置监听器即可.
+  对于下拉刷新，`Android` 官方提供了 `support.v4` `SwipeRefreshLayout`，在 `Activity` 层面，可以拿到 `SwipeRefreshLayout` 调用 `setOnRefreshListener` 设置监听器即可.
 
   或者参考我的 rebase-android 项目编写的 [SwipeRefreshDelegate.java](https://github.com/drakeet/rebase-android/blob/master/app/src/main/java/com/drakeet/rebase/tool/SwipeRefreshDelegate.java).
 
