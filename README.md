@@ -422,7 +422,7 @@ MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个�
 
 - **获取数据后做 Diff 更新：**
 
-  **MultiType** 支持 onBindViewHolder with payloads，详情见 `ItemViewBinder` 类文档。对于 Diff，可以在 `Activity` 中进行 Diff，或者继承 `MultiTypeAdapter` 提供接收数据方法，在方法中进行 Diff. **MultiType** 不提供内置 Diff 方案，不然需要依赖 v4 包，并且这也不应该属于它的范畴。
+  **MultiType** 支持 onBindViewHolder with payloads，详情见 `ItemViewBinder` 类文档。对于 Diff，可以在 `Activity` 中进行 Diff，或者继承 `MultiTypeAdapter` 提供接收数据方法，在方法中进行 Diff. **MultiType** 不提供内置 Diff 方案，不然需要依赖 v4 包，并且这也不应该属于它的范畴。
   
   示例代码：https://github.com/drakeet/MultiType/issues/56
   
