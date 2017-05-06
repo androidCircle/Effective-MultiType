@@ -2,11 +2,13 @@
 
 在开发我的 **[TimeMachine](https://github.com/drakeet/TimeMachine)** 时，我有一个复杂的聊天页面，于是我设计了我的类型池系统，它是完全解耦的，因此我能够轻松将它抽离出来分享，并给它取名为 **MultiType**.
 
-从前，**比如我们写一个类似微博列表页面**，这样的列表是十分复杂的：有纯文本的、带转发原文的、带图片的、带视频的、带文章的等等，甚至穿插一条可以横向滑动的好友推荐条目。不同的 item 类型众多，而且随着业务发展，还会更多。如果我们使用传统的开发方式，经常要做一些繁琐的工作，代码可能都堆积在一个 `Adapter` 中：我们需要覆写 `RecyclerView.Adapter` 的 `getItemViewType` 方法，罗列一些 `type` 整型常量，并且 `ViewHolder` 转型、绑定数据也比较麻烦。一旦产品需求有变，或者产品设计说需要增加一种新的 item 类型，我们需要去代码堆里找到我们原来的逻辑去修改，或者找到正确的位置去增加代码。这些过程都比较繁琐，侵入较强，需要小心翼翼，以免改错影响到其他地方。
+从前，**比如我们写一个类似微博列表页面**，这样的列表是十分复杂的：有纯文本的、带转发原文的、带图片的、带视频的、带文章的等等，甚至穿插一条可以横向滑动的好友推荐条目。不同的 item 类型众多，而且随着业务发展，还会更多。如果我们使用传统的开发方式，经常要做一些繁琐的工作，代码可能都堆积在一个 `Adapter` 中：我们需要覆写 `RecyclerView.Adapter` 的 `getItemViewType` 方法，罗列一些 `type` 整型常量，并且 `ViewHolder` 转型、绑定数据也比较麻烦。一旦产品需求有变，或者产品设计说需要增加一种新的 item 类型，我们需要去代码堆里找到原来的逻辑去修改，或找到正确的位置去增加代码。这些过程都比较繁琐，侵入较强，需要小心翼翼，以免改错影响到其他地方。
 
-现在好了，我们有了 **MultiType**，简单来说，**MultiType 就是一个多类型列表视图的中间分发框架，它能帮助你快速并且清晰地开发一些复杂的列表页面。**它本是为聊天页面开发的，聊天页面的消息类型也是有大量不同种类，并且新增频繁，而 **MultiType** 能够轻松胜任，代码模块化，随时可拓展新的类型进入列表当中。它内建了 `类型` - `View` 的复用池系统，支持 `RecyclerView`，使用简单灵活，令代码清晰、拥抱变化。
+现在好了，我们有了 **MultiType**，简单来说，**MultiType 就是一个多类型列表视图的中间分发框架，它能帮助你快速并且清晰地开发一些复杂的列表页面。**它本是为聊天页面开发的，聊天页面的消息类型也是有大量不同种类，且新增频繁，而 **MultiType** 能够轻松胜任。
 
-因此，我写了这篇文章，目的有几个：一是以作者的角度对 **MultiType** 进行入门和进阶详解。二是传递我开发过程中的思想、设计理念，这些偏细腻的内容，即使不使用 **MultiType**，想必也能带来很多启发。最后就是把我自觉得不错的东西分享给大家，试想如果你制造的东西很多人在用，即使没有带来任何收益，也是一件很自豪的事情。
+**MultiType** 以灵活直观为第一宗旨进行设计，它内建了 `类型` - `View` 的复用池系统，支持 `RecyclerView`，随时可拓展新的类型进入列表当中，使用简单，令代码清晰、模块化、灵活可变。
+
+因此，我写了这篇文章，目的有几个：一是以作者的角度对 **MultiType** 进行入门和进阶详解。二是传递我开发过程中的思想、设计理念，这些偏细腻的内容，即使不使用 **MultiType**，想必也能带来很多启发。最后就是把自我觉得不错的东西分享给大家，试想如果你制造的东西很多人在用，即使没有带来任何收益，也是一件很自豪的事情。
 
 # 目录
 
@@ -17,8 +19,8 @@
 - [高级用法](#高级用法)
   - [使用 MultiTypeTemplates 插件自动生成代码](#使用-multitypetemplates-插件自动生成代码)
   - [使用 全局类型池](#使用-全局类型池)
-  - [一个类型对应多个 ViewProvider](#一个类型对应多个-viewprovider)
-  - [与 ViewProvider 通讯](#与-viewprovider-通讯)
+  - [一个类型对应多个 ViewBinder](#一个类型对应多个-viewpbinder)
+  - [与 ViewBinder 通讯](#与-viewbinder-通讯)
   - [使用断言，比传统 Adapter 更加易于调试](#使用断言比传统-adapter-更加易于调试)
   - [支持 Google AutoValue](#支持-google-autovalue)
   - [对 class 进行二级分发](#对-class-进行二级分发)
@@ -27,7 +29,7 @@
   - [实现线性布局和网格布局混排列表](#实现线性布局和网格布局混排列表)
   - [数据扁平化处理](#数据扁平化处理)
 - [更多示例](#更多示例)
-  - **仿造微博的数据结构和二级 ViewProvider**
+  - **仿造微博的数据结构和二级 ViewBinder**
   - drakeet/about-page
   - 线性和网格布局混排
   - drakeet/TimeMachine
@@ -37,17 +39,17 @@
   - Q: 使用全局类型的话，只能是在 Application 中进行注册吗？
   - Q: 为什么不全然使用全局类型池？
   - Q: 觉得 MultiType 不够精简，应该怎么做？
-  - Q: 在 `ItemViewProvider` 中如何拿到 `Context` 对象？
-  - Q: 如何在 `ItemViewProvider` 中获取到 item position？
+  - Q: 在 `ItemViewBinder` 中如何拿到 `Context` 对象？
+  - Q: 如何在 `ItemViewBinder` 中获取到 item position？
 - [感谢](#感谢)
 - [引用文献](#引用文献)
 
 # MultiType 的特性
 
-- 轻盈，整个类库只有 10 个类文件，`aar` 或 `jar` 包大小只有 10KB
-- 周到，支持 局部类型池 和 全局类型池，并支持二者共用，当出现冲突时，以局部的为准
-- 灵活，几乎所有的部件(类)都可被替换、可继承定制，面向接口/抽象编程
-- 纯粹，只负责本分工作，专注多类型的列表视图 类型分发
+- 轻盈，整个类库只有 14 个类文件，`aar` 或 `jar` 包大小只有 13 KB
+- 周到，支持 data type `<-->` item view binder 之间 一对一 和 一对多 的关系绑定
+- 灵活，几乎所有的部件(类)都可被替换、可继承定制，面向接口 / 抽象编程
+- 纯粹，只负责本分工作，专注多类型的列表视图 类型分发，绝不会去影响 views 的内容或行为
 - 高效，没有性能损失，内存友好，最大限度发挥 `RecyclerView` 的复用性
 - 可读，代码清晰干净、设计精巧，极力避免复杂化，可读性很好，为拓展和自行解决问题提供了基础
 
@@ -59,11 +61,11 @@ MultiType 能轻松实现如下页面，它们将在示例篇章具体提供:
 
 MultiType 的源码关系：
 
-[![](http://ww4.sinaimg.cn/large/86e2ff85gw1f9bf092eraj21kw0xr1el.jpg)](http://ww2.sinaimg.cn/large/86e2ff85gw1f9bekb34xfj21kw0y3av4.jpg)
+[![](https://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg)](https://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg)
 
 # MultiType 基础用法
 
-可能有的新手看到以上特性介绍说什么 "冲突"、抽象编程的，还有那看不懂的总览图，都是一脸懵逼，完全不要紧，不懂可以回过头来再看，我们先从基础用法入手，其实 **MultiType** 使用起来特别简单。使用 **MultiType** 一般情况下只要 maven 引入 + 三个小步骤。之后还会介绍使用插件生成代码方式，步骤将更加简化：
+可能有的新手看到以上特性介绍说什么 "一对多"、抽象编程等等，都不太懂，我想说完全不要紧，不懂可以回过头来再看，我们先从基础用法入手，其实 **MultiType** 使用起来特别简单。使用 **MultiType** 一般情况下只要 maven 引入 + 三个小步骤。之后还会介绍使用插件生成代码方式，步骤将更加简化：
 
 ### 引入
 
@@ -71,15 +73,15 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:2.4.0'
+    compile 'me.drakeet.multitype:multitype:3.0.0'
 }
 ```
 
-> 注：**MultiType** 内部引用了 `recyclerview-v7:25.1.0`，如果你不想使用这个版本，可以使用 `exclude` 将它排除掉，再自行引入你选择的版本。示例如下：
+> 注：**MultiType** 内部引用了 `recyclerview-v7:25.3.1`，如果你不想使用这个版本，可以使用 `exclude` 将它排除掉，再自行引入你选择的版本。示例如下：
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:2.4.0', {
+    compile('me.drakeet.multitype:multitype:3.0.0', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
@@ -88,37 +90,35 @@ dependencies {
 
 ## 使用
 
-**Step 1**. 创建一个 `class`，它将是你的数据类型或 Java bean/model. 对这个类的内容没有任何限制。示例如下：
+**Step 1**. 创建一个 `class`，它将是你的数据类型或 Java bean / model. 对这个类的内容没有任何限制。示例如下：
 
 ```java
 public class Category {
 
-    @NonNull public String text;
+    @NonNull public final String text;
 
-    public Category(@NonNull final String text) {
+    public Category(@NonNull String text) {
         this.text = text;
     }
 }
 ```
 
-**Step 2**. 创建一个 `class` 继承 `ItemViewProvider`. 
+**Step 2**. 创建一个 `class` 继承 `ItemViewBinder`. 
 
- `ItemViewProvider` 是个抽象类，其中 `onCreateViewHolder` 方法用于生产你的 Item View Holder, `onBindViewHolder` 用于绑定数据到 `View`s. 一般一个 `ItemViewProvider` 类在内存中只会有一个实例对象，MultiType 内部将复用这个 provider 对象来生产所有相关的 Item Views 和绑定数据。示例：
+ `ItemViewBinder` 是个抽象类，其中 `onCreateViewHolder` 方法用于生产你的 Item View Holder, `onBindViewHolder` 用于绑定数据到 `View`s. 一般一个 `ItemViewBinder` 类在内存中只会有一个实例对象，MultiType 内部将复用这个 binder 对象来生产所有相关的 item views 和绑定数据。示例：
 
 ```java
-public class CategoryViewProvider
-    extends ItemViewProvider<Category, CategoryViewProvider.ViewHolder> {
+public class CategoryViewBinder
+    extends ItemViewBinder<Category, CategoryViewBinder.ViewHolder> {
 
     @NonNull @Override
-    protected ViewHolder onCreateViewHolder(
-        @NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+    protected ViewHolder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
         View root = inflater.inflate(R.layout.item_category, parent, false);
         return new ViewHolder(root);
     }
 
     @Override
-    protected void onBindViewHolder(
-        @NonNull ViewHolder holder, @NonNull Category category) {
+    protected void onBindViewHolder(@NonNull ViewHolder holder, @NonNull Category category) {
         holder.category.setText(category.text);
     }
 
@@ -134,7 +134,7 @@ public class CategoryViewProvider
 }
 ```
 
-**Step 3**. 好了，你不必再创建新的类文件了，在 `Activity` 中加入 `RecyclerView` 和 `List` 并注册你的类型就完事了，示例：
+**Step 3**. 在 `Activity` 中加入 `RecyclerView` 和 `List` 并注册你的类型，示例：
 
 ```java
 public class MainActivity extends AppCompatActivity {
@@ -144,7 +144,8 @@ public class MainActivity extends AppCompatActivity {
     /* Items 等同于 ArrayList<Object> */
     private Items items;
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override 
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list);
@@ -152,8 +153,8 @@ public class MainActivity extends AppCompatActivity {
         adapter = new MultiTypeAdapter();
 
         /* 注册类型和 View 的对应关系 */
-        adapter.register(Category.class, new CategoryViewProvider());
-        adapter.register(Song.class, new SongViewProvider());
+        adapter.register(Category.class, new CategoryViewBinder());
+        adapter.register(Song.class, new SongViewBinder());
         recyclerView.setAdapter(adapter);
 
         /* 模拟加载数据，也可以稍后再加载，然后使用
@@ -165,11 +166,12 @@ public class MainActivity extends AppCompatActivity {
             items.add(new Song("许岑", R.drawable.avatar_cen));
         }
         adapter.setItems(items);
+        adapter.notifyDataSetChanged();
     }
 }
 ```
 
-大功告成！这就是 **MultiType** 的基础用法了，简单、符合直觉。其中 `onCreateViewHolder` 和 `onBindViewHolder` 方法名沿袭了使用 `RecyclerView` 的习惯，令人一目了然，减少了新人的学习成本。
+大功告成！这就是 **MultiType** 的基础用法了。其中 `onCreateViewHolder` 和 `onBindViewHolder` 方法名沿袭了使用 `RecyclerView` 的习惯，令人一目了然，减少了新人的学习成本。
 
 
 # 设计思想
@@ -178,96 +180,100 @@ public class MainActivity extends AppCompatActivity {
 
 - 要简单，便于他人阅读代码
 
-  因此我极力去避免将它复杂化，比如引入显性 item id 机制（MultiType 内部有隐性 id），比如加入许多不相干的内容，比如使用 apt + 注解完成类型和 View 自动绑定、自动注册，再比如，使用反射。这些我都是拒绝的。我想写人人可读的代码，使用简单的方式，去实现复杂的需求。过多不相干、没必要的代码，将会使项目变得令人晕头转向，难以阅读，遇到需要定制、解决问题的时候，无从下手。
+  因此我极力避免将它复杂化，避免加入许多不相干的内容。我想写人人可读的代码，使用简单的方式，去实现复杂的需求。过多不相干、没必要的代码，将会使项目变得令人晕头转向，难以阅读，遇到需要定制、解决问题的时候，无从下手。
 
 - 要灵活，便于拓展和适应各种需求
 
-  很多人会得意地告诉我，他们把 **MultiType** 源码精简成三四个类，甚至一个类，以为代码越少就是越好，这我也是不能赞同的。**MultiType** 考虑得比他们更远，这是一个提供给大众使用的类库，过度的精简只会使得灵活性大幅失去。**它或许不是使用起来最简单的，但很可能是使用起来最灵活的。** 在我看来，灵活性的优先级大于简单性。因此，**MultiType** 各个组件都是以接口或抽象进行连接，这意味着它所有的角色、组件都可以被替换，或者被拓展和继承。如果你觉得它使用起来还不够简单，完全可以通过继承来封装出更具体符合你使用需求的方法。它已经暴露了足够丰富、周到的接口以供自行实现，我们不应该直接去修改源码，这会导致一旦后续发现你的精简版满足不了你的需求时，已经没有回头路了。
+  很多人会得意地告诉我，他们把 **MultiType** 源码精简成三四个类，甚至一个类，以为代码越少就是越好，这我不能赞同。**MultiType** 考虑得更远，这是一个提供给大众使用的类库，过度的精简只会使得大幅失去灵活性。**它或许不是使用起来最简单的，但很可能是使用起来最灵活的。** 在我看来，"直观"、"灵活"优先级大于"简单"。因此，**MultiType** 以接口或抽象进行连接，这意味着它的角色、组件都可以被替换，或者被拓展和继承。如果你觉得它使用起来还不够简单，完全可以通过继承封装出更具体符合你使用需求的方法。它已经暴露了足够丰富、周到的接口以供拓展，我们不应该直接去修改源码，这会导致一旦后续发现你的精简版满足不了你的需求时，已经没有回头路了。
 
-- 要直观，使用起来能令项目代码更清晰、模块化
+- 要直观，使用起来能令项目代码更清晰可读，一目了然
 
-  **MultiType** 提供的 `ItemViewProvider` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，手动写一个新的 `ItemViewProvider` 需要提供了 类型 泛型，虽然略微有点儿麻烦，但能带来一些好处，指定泛型之后，我们不再需要自己做强制转型，而且代码能够显式表明 `ItemViewProvider` 和 item `class` 的对应关系，简单直观。另外，现在我们有 **MultiTypeTemplates** 插件来自动生成代码，这个过程变得更加顺滑简单。
+  **MultiType** 提供的 `ItemViewBinder` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，MultiType 很多地方放弃使用反射而是让用户显式指明一些关系，如：`MultiTypeAdapter#register` 方法，需要传递一个数据模型 `class` 和 `ItemViewBinder` 对象，虽然有很多方法可以把它精简成单一参数方法，但我们认为显式声明数据模型类与对应关系，更具直观。
 
 
 # 高级用法
 
-介绍了基础用法和设计思想后，我们可以来介绍一下 MultiType 的高级用法。这是一些典型需求和案例，它们是基础用法的延伸，也是设计思想的体现。也许一开始并不会使用到，但如若了解，能够拓宽使用 MultiType 的思路，并且其中也分享了许多有意思的内容和考虑问题的角度。
+介绍了基础用法和设计思想后，我们可以来介绍一下 **MultiType** 的高级用法。这是一些典型需求和案例，它们是基础用法的延伸，也是设计思想的体现。也许一开始并不会使用到，但如若了解，能够拓宽使用 **MultiType** 的思路，也能过了解到我们考虑问题的角度。
 
 ## 使用 MultiTypeTemplates 插件自动生成代码
 
-在基础用法中，我们了通过 3 个步骤完成 **MultiType** 的初次接入使用，实际上这个过程可以更加简化，**MultiType** 提供了 Android Studio 插件来自动生成代码：**MultiTypeTemplates**，源码也是开源的，[https://github.com/drakeet/MultiTypeTemplates](https://github.com/drakeet/MultiTypeTemplates)，不仅提供了一键生成 item 类文件和 `ItemViewProvider`，而且**是一个很好的利用代码模版自动生成代码的示例。**其中使用到了官方提供的代码模版 API，也用到了我自己发明的更灵活修改模版内容的方法，有兴趣做这方面插件的可以看看。
+在基础用法中，我们了通过 3 个步骤完成 **MultiType** 的初次接入使用，实际上这个过程可以更加简化，**MultiType** 提供了 Android Studio 插件来自动生成代码：
+
+**MultiTypeTemplates**，源码也是开源的，[https://github.com/drakeet/MultiTypeTemplates](https://github.com/drakeet/MultiTypeTemplates)。这个插件不仅提供了一键生成 item 类文件和 `ItemViewBinder`，而且**是一个很好的利用代码模版自动生成代码的示例。**其中使用到了官方提供的代码模版 API，也用到了我自己发明的更灵活修改模版内容的方法，有兴趣做这方面插件的可以看看。
 
 话说回来，安装和使用 **MultiTypeTemplates** 非常简单：
 
 **Step 1.** 打开 Android Studio 的`设置` -> `Plugin` -> `Browse repositories`，搜索 `MultiTypeTemplates` 即可获得下载安装：
 
-![](http://ww4.sinaimg.cn/large/86e2ff85gw1f935l0kwilj21kw0t3akm.jpg)
+<img src="http://ww4.sinaimg.cn/large/86e2ff85gw1f935l0kwilj21kw0t3akm.jpg" width=640/>
 
-**Step 2.** 安装完成后，重启 Android Studio. 右键点击你的 package，选择 `New` -> `MultiType Item`，然后输入你的 item 名字，它就会自动生成 item 模型类 和 `ItemViewProvider` 文件和代码。
 
-比如你输入的是 "Category"，它就会自动生成 `Category.java` 和 `CategoryViewProvider.java`.
+**Step 2.** 安装完成后，重启 Android Studio. 右键点击你的 package，选择 `New` -> `MultiType Item`，然后输入你的 item 名字，它就会自动生成 item 模型类 和 `ItemViewBinder` 文件和代码。
+
+比如你输入的是 "Category"，它就会自动生成 `Category.java` 和 `CategoryViewBinder.java`.
 
 特别方便，相信你会很喜欢它。未来这个插件也将会支持自动生成布局文件，这是目前欠缺的，但不要紧，其实 AS 在这方面已经很方便了，对布局 `R.layout.item_category` 使用 `alt + enter` 快捷键即可自动生成布局文件。
 
 
 ## 使用 全局类型池
 
-在基础用法中，我们并没有提到 全局类型池，实际上，**MultiType** 支持 局部类型池 和 全局类型池，并支持二者共用，当出现冲突时，以局部的为准。使用局部类型池就如上面的示例，调用 `adapter.register()` 即可。而使用全局类型池也是很容易的，**MultiType** 提供了一个内置的 `GlobalMultiTypePool` 作为全局类型池来存储类型和 view 关系，使用如下：
+**MultiType** 在 3.0 版本之前一直是支持全局类型池的，你可以往一个全局类型池中 register 类型和 view binder，然后让你的各个 `MultiTypeAdapter` 都能使用它。
 
-只要在使用你的全局类型之前任意位置注册类型，通过调用 `GlobalMultiTypePool.register(...)` 静态方法完成注册。推荐统一在 `Application` 初始便进行注册，这样代码便于寻找和阅读。
+但在 **MultiType** 3.0 之后，我们废弃并删除了内置的全局类型池。原因在于全局类型池容易对全局产生不可见影响，比如你注册了一堆全局类型关系并在多处引用它，某一天你的伙伴不小心修改了全局类型池的某个内容，将导致所有使用的地方皆受到变化，是我们不希望发生的。一个好的模块，应该是高内聚、自包含的，如果过多下放权力到外围，很容易遭受破坏或影响。
 
-之后回到你的 `Activity`，调用 `adapter.applyGlobalMultiTypePool()` 方法应用你注册过的全局类型即可。
+另外，全局类型池一般都是 static 形式的，如果我们给这个 static 容器传递了 `Activity` 或 `Context` 对象，而没有在退出时释放，就容易造出内存泄漏，这对新手来说很容易触犯。
 
-`GlobalMultiTypePool` 让一些普适性的类型能够全局共用，但使用全局类型池不当也会带来问题，这是没有全然采用全局类型池的原因。问题在于全局类型池是静态的，如果你在 `Activity` 中注册**全局**类型（虽然并不推荐。因为全局类型最好统一在一个地方注册，便于管理），并传入带 `Activity` 引用的变量进去，就可能造成内存泄露。举个例子，如下是一个很常见的场景，我们把一个点击回调传递给 `provider`，并注册到全局类型池：
+因此我们删除了内置的全局类型池，当你创建一个 `MultiTypeAdapter` 对象时，默认情况下，它内部会自动创建一个局部类型池以供你接下来注册类型。当然了，如果你实在需要它，完全可以自己创建一个 static 的 `MultiTypePool`，然后通过 `MultiTypeAdapter#registerAll(pool)` 将这个类型池传入，以此达到多个地方共同使用。
+
+## 一个类型对应多个 `ItemViewBinder`
+
+**MultiType** 天然支持一个类型对应多个 `ItemViewBinder`，注册方式也很简单，如下：
 
 ```java
-public class LeakActivity extends Activity {
-
-    private MultiTypeAdapter adapter;
-    private Items items;
-
-    @Override protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_leak);
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list);
-        items = new Items();
-        adapter = new MultiTypeAdapter(items);
-
-        OnClickListener listener = new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // ...
-            }
+adapter.register(Data.class).to(
+    new DataType1ViewBinder(),
+    new DataType2ViewBinder()
+).withClassLinker(new ClassLinker<Data>() {
+    @NonNull @Override
+    public Class<? extends ItemViewBinder<Data, ?>> index(@NonNull Data data) {
+        if (data.type == Data.TYPE_2) {
+            return DataType2ViewBinder.class;
+        } else {
+            return DataType1ViewBinder.class;
         }
-
-        /* 在 applyGlobalMultiTypePool 之前注册全局 */
-        GlobalMultiTypePool.register(Post.class, new PostViewProvider(listener));
-        
-        adapter.applyGlobalMultiTypePool(); // <- 使全局的类型加入到局部中来
-
-        recyclerView.setAdapter(adapter);
     }
-}
+});
 ```
 
-由于 Java 匿名内部类 或 非静态内部类，都会默认持有 外部类 的引用，比如这里的 `OnClickListener` 匿名类对象会持有 `LeakActivity.this`，当 `listener` 传递给 `new PostViewProvider()` 构造函数的时候，`GlobalMultiTypePool` 内置的静态类型池将长久持有 `provider -> listener -> LeakActivity.this` 引用链，若没有及时释放，就会引起内存泄露。
+或者：
 
-因此，**在使用全局类型池时，最好不要给 `provider` 传递回调对象或者外部引用，否则就应手动释放或使用弱引用(`WeakReference`)。**除此之外，全局类型池没有什么其他问题，类型池都只会持有 `class` 和非常轻薄的 `provider` 对象。我做过一个试验，就算拥有上万个类型和 `provider`，内存占用也是很少的，索引速度也很快，在主线程连续注册一万个类型花费不过 10 毫秒的时间，何况一般一个应用根本不可能有这么多类型，完全不必担心这方面的问题。
+```java
+adapter.register(Data.class).to(
+    new DataType1ViewBinder(),
+    new DataType2ViewBinder()
+).withLinker(new Linker<Data>() {
+    @Override
+    public int index(@NonNull Data data) {
+        if (data.type == Data.TYPE_2) { return 1; } else return 0;
+    }
+});
+```
+如果你使用 Lambda 表达式，以上代码可以更简洁：
 
-另外一个特性是，不管是全局类型池还是局部类型池，都支持重复注册类型。当发现重复时，之后注册的会把之前注册的类型覆盖掉，因此对于全局类型池，需要谨慎进行重复注册，以免影响到其他地方。
+<img src="https://cloud.githubusercontent.com/assets/5214214/25094943/e458121a-23cb-11e7-9bb6-106d6b1d8401.png" width=640/>
 
 
-## 一个类型对应多个 `ViewProvider`
+解释：
 
-> 注：本文所有的 `ViewProvider` 都指的是 `ItemViewProvider`.
+如上示例代码，对于一对多，我们需要使用 `MultiType#register(class)` 方法，它会返回一个 `OneToManyFlow` 让你紧接着绑定多个 `ItemViewBinder` 实例，最后再调用 `OneToManyEndpoint#withLinker` 或 `OneToManyEndpoint#withClassLinker` 操作符方法类设置 linker. 所谓 linker，是负责动态连接这个 "一" 对应 "多" 中哪一个 binder 的角色。
 
-**MultiType** 天然支持一个类型对应多个 `ViewProvider`，但仅限于在不同的列表中。比如你在 `adapter1` 中注册了 `Post.class` 对应 `SinglePostViewProvider`，在另一个 `adapter2` 中注册了 `Post.class` 对应 `PostDetailViewProvider`，这便是一对多的场景。只要是在不同的局部类型池中，无论如何都不会相互干扰，都是允许的。
+这个方案具有很好的性能表现，而且可谓十分直观。另外，我使用了 `@CheckResult` 注解来让编译器督促开发者一定要完整调用方法链才不至于出错。
 
-而对于在 同一个列表中 一对多的问题，首先这种场景非常少见，再者不管支不支持一对多，开发者都要去判断哪个时候运用哪个 `ViewProvider`，这是逃不掉的，否则程序就无所适从了。因此，**MultiType** 不去特别解决这个问题，如果要实现同一个列表中一对多，只要空继承你的类型，然后把它视为新的类型，注册到你的类型池中即可。**或者参考我的"一对多"示例：https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/one2many 这个示例中，我使用了一种极其简单清晰的方式实现了一对多，并且支持 int type 来描述某个 "一" 该对应哪个 provider.**
+更详细的"一对多"示例可以参考我的 sample 源码：https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/one2many 
 
-## 与 `ViewProvider` 通讯
+## 与 `ItemViewBinder` 通讯
 
-`ItemViewProvider` 对象可以接受外部类型、回调函数，只要在使用之前，传递进去即可，例如：
+`ItemViewBinder` 对象可以接受外部类型、回调函数，只要在使用之前，传递进去即可，例如：
 
 ```java
 OnClickListener listener = new OnClickListener() {
@@ -276,13 +282,13 @@ OnClickListener listener = new OnClickListener() {
         // ...
     }
 }
-adapter.register(Post.class, new PostViewProvider(xxx, listener));
+adapter.register(Post.class, new PostViewBinder(xxx, listener));
 ```
 
-但话说回来，对于点击事件，能不依赖 `provider` 外部内容的话，最好就在 `provider` 内部完成。`provider` 内部能够接收到 Views 和 数据，大部分情况下，完全有能力不依赖外部 独立完成逻辑。这样能使代码更加模块化，便于解耦，例如下面便是一个完全自包含的例子：
+但话说回来，对于点击事件，能不依赖 `binder` 外部内容的话，最好就在 `binder` 内部完成。`binder` 内部能够拿到 Views 和 数据，大部分情况下，完全有能力不依赖外部 独立完成逻辑。这样能使代码更加模块化，实现解耦和内聚。例如下面便是一个完全自包含的例子：
 
 ```java
-public class SquareViewProvider extends ItemViewProvider<Square, SquareViewProvider.ViewHolder> {
+public class SquareViewBinder extends ItemViewBinder<Square, SquareViewBinder.ViewHolder> {
 
     @NonNull @Override
     protected ViewHolder onCreateViewHolder(
@@ -336,7 +342,7 @@ public class SimpleActivity extends MenuBaseActivity {
 
         items = new Items();
         adapter = new MultiTypeAdapter(items);
-        adapter.register(TextItem.class, new TextItemViewProvider());
+        adapter.register(TextItem.class, new TextItemViewBinder());
 
         for (int i = 0; i < 20; i++) {
             items.add(new TextItem(valueOf(i)));
@@ -353,55 +359,22 @@ public class SimpleActivity extends MenuBaseActivity {
 
 `assertAllRegistered` 和 `assertHasTheSameAdapter` 都是可选择性使用，`assertAllRegistered` 需要在加载或更新数据之后， `assertHasTheSameAdapter` 必须在 `recyclerView.setAdapter(adapter)` 之后。
 
-这样做以后，`MultiTypeAdapter` 相关的异常都会报到你的 `Activity`，并且会详细注明出错的原因，而如果符合断言，断言代码不会有任何副作用或影响你的代码逻辑，这时你可以把它当作废话。关于这个类的源代码也是很简单，有兴趣可以直接看看源码：[drakeet/multitype/MultiTypeAsserts.java](https://github.com/drakeet/MultiType/blob/master/library/src/main/java/me/drakeet/multitype/MultiTypeAsserts.java)
+这样做以后，`MultiTypeAdapter` 相关的异常都会报到你的 `Activity`，并且会详细注明出错的原因，而如果符合断言，断言代码不会有任何副作用或影响你的代码逻辑，这时你可以把它当作废话。关于这个类的源代码是很简单的，有兴趣可以直接看看源码：[drakeet/multitype/MultiTypeAsserts.java](https://github.com/drakeet/MultiType/blob/master/library/src/main/java/me/drakeet/multitype/MultiTypeAsserts.java)
 
 
 ## 支持 Google AutoValue
 
 [AutoValue](https://github.com/google/auto/tree/master/value) 是 Google 提供的一个在 Java 实体类中自动生成代码的类库，使你更专注于处理项目的其他逻辑，它可使代码更少，更干净，以及更少的 bug. 
 
-当我们使用传统方式创建一个 Java 模型类的时候，经常需要写一堆 `toString()`、`hashCode()`、getter、setter 等等方法，而且对于 Android 开发，大多情况下需要实现 `Parcelable` 接口。这样的结果是，我本来想要一个只有几个属性的小模型类，但出于各种原因，这个模型类方法数变得十分繁复，阅读起来很不清爽，并且难免会写错内容。AutoValue 的出现解决了这个问题，我们只需定义一些抽象类交给 AutoValue，AutoValue 会**自动**生成该抽象类的具体实现子类，并携带各种样板代码。
+当我们使用传统方式创建一个 Java 模型类的时候，经常需要写一堆 `toString()`、`hashCode()`、getter、setter 等等方法，而且对于 Android 开发，大多情况下还需要实现 `Parcelable` 接口。这样的结果是，我本来想要一个只有几个属性的小模型类，但出于各种原因，这个模型类方法数变得十分繁复，阅读起来很不清爽，并且难免会写错内容。AutoValue 的出现解决了这个问题，我们只需定义一些抽象类交给 AutoValue，AutoValue 会**自动**生成该抽象类的具体实现子类，并携带各种样板代码。
 
 更详细的介绍内容和使用教程，我会在文章末尾会给出 AutoValue 的相关链接，不熟悉 AutoValue 可以借此机会看一下，在这里就不做过多介绍了。新手暂时看不懂也不必纠结，了解之后都是十分容易的。
 
-**MultiType** 支持了 Google AutoValue，支持自动映射某个已经注册的类型的**子类**到同一 View Provider，规则是：如果子类**有**注册，就用注册的映射关系；如果子类**没**注册，则该子类对象使用注册过的父类映射关系。
+**MultiType** 支持了 Google AutoValue，支持自动映射某个已经注册的类型的**子类**到同一 `ItemViewBinder`，规则是：如果子类**有**注册，就用注册的映射关系；如果子类**没**注册，则该子类对象使用注册过的父类映射关系。
 
-## 对 class 进行二级分发
+## FlatTypeAdapter(已废弃)
 
-我的另外一个项目，即一开始提到的 **TimeMachine**，它是一个看起来特别像聊天软件的 SDK，但还处于非常初期阶段，大家可以不必太关心它。话说回来，在我的 **TimeMachine** 中，我的消息数据结构是 `Message` - `MessageContent`，`Message` 包含了 `MessageContent`. 因此产生了一个问题，我的 `message` 对象们都是一样的 `Message` 类型，但 `message` 包含的 `content` 对象不一样，我需要根据 `content` 来分发数据到 `ItemViewProvider`，但我加入 `Items` 中的数据都是 `Message` 对象，因此，如果什么也不做，它们会被视为同一类型。对于这种场景，我们可以继承 `MultiTypeAdapter` 并覆写 `onFlattenClass(@NonNull Item message)` 方法进行二级分发，以我的 `MessageAdapter` 为例：
-
-```java
-public class MessageAdapter extends MultiTypeAdapter {
-
-    public MessageAdapter(@NonNull List<Message> messages) {
-        super(messages);
-    }
-
-
-    @NonNull @Override public Class onFlattenClass(@NonNull Object message) {
-        return ((Message) message).content.getClass();
-    }
-}
-```
-
-是不是十分简单？这样以后，我就可以直接将 `MessageContent.class` 注册进类型池，而将包含不同 `content` 的 `Message` 对象 add 进 `Items` List，`MessageAdapter` 会自动取出 `message` 的 `content` 对象，并以它为基准定位 `ItemViewProvider` 同时会把整个 `Message `对象发给 `provider`，`provider` 可进行分层，如下：
-
-```java
-public abstract class MessageViewProvider<C extends Content, V extends RecyclerView.ViewHolder>
-    extends ItemViewProvider<Message, V> {
-
-    @SuppressWarnings("unchecked") @Override
-    protected void onBindViewHolder(@NonNull V holder, @NonNull Message message) {
-        onBindViewHolder(holder, (C) message.content, message);
-    }
-
-    /* 留给子类的抽象方法 */
-    protected abstract void onBindViewHolder(
-        @NonNull V holder, @NonNull C content, @NonNull Message message);
-}
-```
-
-总的来说，对 class 进行二级分发往往要伴随着对 `ItemViewProvider` 进行二级处理，对此我给出了一个详细的示例，到本文到 "示例" 章节中我们会再详细介绍 `ItemViewProvider` 二级分发的场景和更具体运用。
+MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个类已经被删除了，你可以完全不必关系它。如果你使用过它，现在它已经被一对多方案替代了，请转成使用一对多功能实现。
 
 ## MultiType 与下拉刷新、加载更多、HeaderView、FooterView、Diff
 
@@ -413,7 +386,9 @@ public abstract class MessageViewProvider<C extends Content, V extends RecyclerV
 
 - **下拉刷新：**
 
-  对于下拉刷新，`Android` 官方提供了 `support.v4` `SwipeRefreshLayout`，在 `Activity` 层面，可以拿到 `SwipeRefreshLayout` 并 `setOnRefreshListener`.
+  对于下拉刷新，`Android` 官方提供了 `support.v4` `SwipeRefreshLayout`，在 `Activity` 层面，可以拿到 `SwipeRefreshLayout` 调用 `setOnRefreshListener` 设置监听器即可.
+
+  或者参考我的 rebase-android 项目编写的 [SwipeRefreshDelegate.java](https://github.com/drakeet/rebase-android/blob/master/app/src/main/java/com/drakeet/rebase/tool/SwipeRefreshDelegate.java).
 
 - **加载更多：**
 
@@ -447,15 +422,17 @@ public abstract class MessageViewProvider<C extends Content, V extends RecyclerV
   }
   ```
 
+  或者参考我的 rebase-android 项目编写的 [LoadMoreDelegate.java](https://github.com/drakeet/rebase-android/blob/master/app/src/main/java/com/drakeet/rebase/tool/LoadMoreDelegate.java).
+
 - **获取数据后做 Diff 更新：**
 
-  可以在 `Activity` 中进行 Diff，或者继承 `MultiTypeAdapter` 提供接收数据方法，在方法中进行 Diff. **MultiType** 不提供内置 Diff 方案，不然需要依赖 v4 包，并且这也不应该属于它的范畴。
+  **MultiType** 支持 onBindViewHolder with payloads，详情见 `ItemViewBinder` 类文档。对于 Diff，可以在 `Activity` 中进行 Diff，或者继承 `MultiTypeAdapter` 提供接收数据方法，在方法中进行 Diff. **MultiType** 不提供内置 Diff 方案，不然需要依赖 v4 包，并且这也不应该属于它的范畴。
   
   示例代码：https://github.com/drakeet/MultiType/issues/56
   
 - **HeaderView、FooterView**
 
-  **MultiType** 其实本身就支持 `HeaderView`、`FooterView`，只要创建一个 `Header.class` - `HeaderViewProvider` 和 `Footer.class` - `FooterViewProvider` 即可，然后把 `new Header()` 添加到 `items` 第一个位置，把 `new Footer()` 添加到 `items` 最后一个位置。需要注意的是，如果使用了 Footer View，在底部插入数据的时候，需要添加到 `最后位置 - 1`，即倒二个位置，或者把 `Footer` remove 掉，再添加数据，最后再插入一个新的 `Footer`.
+  **MultiType** 其实本身就支持 `HeaderView`、`FooterView`，只要创建一个 `Header.class` - `HeaderViewBinder` 和 `Footer.class` - `FooterViewBinder` 即可，然后把 `new Header()` 添加到 `items` 第一个位置，把 `new Footer()` 添加到 `items` 最后一个位置。需要注意的是，如果使用了 Footer View，在底部插入数据的时候，需要添加到 `最后位置 - 1`，即倒二个位置，或者把 `Footer` remove 掉，再添加数据，最后再插入一个新的 `Footer`.
   
 ## 实现 RecyclerView 嵌套横向 RecyclerView
 
@@ -471,11 +448,11 @@ public class PostList {
 }
 ```
 
-对应的 `HorizontalItemViewProvider` 类似这样：
+对应的 `HorizontalItemViewBinder` 类似这样：
 
 ```java
-public class HorizontalItemViewProvider
-    extends ItemViewProvider<PostList, HorizontalItemViewProvider.ViewHolder> {
+public class HorizontalItemViewBinder
+    extends ItemViewBinder<PostList, HorizontalItemViewBinder.ViewHolder> {
 
     @NonNull @Override
     protected ViewHolder onCreateViewHolder(
@@ -502,7 +479,7 @@ public class HorizontalItemViewProvider
             layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
             recyclerView.setLayoutManager(layoutManager);
             /* adapter 只负责灌输、适配数据，布局交给 LayoutManager，可复用 */
-            adapter = new PostsAdapter();
+            adapter = new PostsAdapter();    // 或者直接使用 MultiTypeAdapter 更加方便
             recyclerView.setAdapter(adapter);
             /* 在此设置横向滑动监听器，用于记录和恢复当前滑动到的位置，略 */
             ...
@@ -548,7 +525,7 @@ public class MultiGridActivity extends MenuBaseActivity {
         
         adapter = new MultiTypeAdapter(items);
         adapter.applyGlobalMultiTypePool();
-        adapter.register(Square.class, new SquareViewProvider());
+        adapter.register(Square.class, new SquareViewBinder());
 
         assertAllRegistered(adapter, items);
         recyclerView.setAdapter(adapter);
@@ -604,7 +581,7 @@ public class Comment {
 private List<Object> flattenData(List<Post> posts) {
     final List<Object> items = new ArrayList<>();
     for (Post post : posts) {
-        /* 将 post 加进 items，Provider 内部拿到它的时候，
+        /* 将 post 加进 items，Binder 内部拿到它的时候，
          * 我们无视它的 comments 内容即可 */
         items.add(post);
         /* 紧接着将 comments 拿出来插入进 items，
@@ -626,15 +603,15 @@ adapter.notifyDataSetChanged();
 
 # 更多示例
 
-**MultiType** 的开源项目提供了许多的 sample (示例) 程序，这些示例秉承了一贯的代码清晰、干净的风格，十分易于阅读：
+**MultiType** 的开源项目提供了许多的 samples (示例) 程序，这些示例秉承了一贯的代码清晰、干净的风格，十分易于阅读：
   
-- [仿造**微博**的数据结构和二级 ViewProvider](https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/weibo)
+- [仿造**微博**的数据结构和二级 ItemViewBinder](https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/weibo)
 
   这是一个类似微博数据结构的示例，数据两层结构，Item 也是两层结构：一层框架（包含头像用户名等），一层 content view(微博内容)，内容嵌套于框架中。微博的每一条微博 item 都包含了这样两层嵌套关系，这样做的好处是，你不必每个 item 都去重复制造一遍外层框架。
   
   或者换一个比喻，就像聊天消息，一条聊天消息也是两层的，一层头像、用户名、聊天气泡框，一层你的文字、图片等。另外，每一种消息都有左边和右边的样式，分别对应别人发来的消息和你发出的消息。如果左边算一种，右边又算一种，就是比较不好的设计了，会导致布局内容重复、冗余，修改操作都要做两遍。最好的方案是让他们视被为同一种类型，然后在 item 框层次进行左右边判断和框架相关数据绑定。
   
-  我提供的这个二级 `ViewProvider` 示例便是这样的两层结构。它能够让你每次新增加一个类型，只要实现内容即可，框不应该重复实现。
+  我提供的这个二级 `ItemViewBinder` 示例便是这样的两层结构。它能够让你每次新增加一个类型，只要实现内容即可，框不应该重复实现。
   
   如果再不明白，或许你可以看看我的这个示例中 微博 Item 框的布局：
   
@@ -644,7 +621,7 @@ adapter.notifyDataSetChanged();
   
   这个例子算高级中的高级，但实际上也是很简单，展示了 **MultiType** 优秀的可拓展能力。完整运行结果展示如下：
  
-  <img src="http://ww3.sinaimg.cn/large/86e2ff85jw1f9a7tek74lj21401z414s.jpg" width=270 height=486/> <img src="http://ww1.sinaimg.cn/mw1024/86e2ff85jw1f9a7z4yqlkj21401z4n8r.jpg" width=270 height=486/>
+  <img src="http://ww3.sinaimg.cn/large/86e2ff85jw1f9a7tek74lj21401z414s.jpg" width=216/> <img src="http://ww1.sinaimg.cn/mw1024/86e2ff85jw1f9a7z4yqlkj21401z4n8r.jpg" width=216/>
   
   > 注：以上我们并没有提到服务端 JSON 数据转为我们定义的 Weibo 对象过程，实际上对于完整链路，这个过程是需要做数据转换，我们需要在 `WeiboContent` 层加一个 `type` 或 `describe` 字段用于描述微博内容类型，然后再将微博内容的 JSON 文本转为具体微博内容对象交给 Weibo. 这个内容建议直接阅读这个 sample 的 `WeiboContentDeserializer` 源码，我利用了一种很简单又巧妙的方式，在 JSON 解析底层便进行抽象数据具体化，使得客户端和服务端都能够轻松适应这种微博和微博内容嵌套关系。
   
@@ -672,35 +649,22 @@ adapter.notifyDataSetChanged();
 
   <img src="http://ww3.sinaimg.cn/large/86e2ff85gw1f96ygmroy0j21401z4nl9.jpg" width="270" height="486"/>
   
-附：一个第三方示例，[采用真实的网络请求数据演示 MultiType 框架的用法 by WanLiLi](https://github.com/WanLiLi/MultiTypeDemo). 点评：看了下，代码不够清爽，但实现效果十分不错。
   
 # Q & A
 
-- **Q: 全局类型池的主要作用是什么，能取消全局的使用吗？**
-
-  A: 全局类型池的主要作用是，注册一些能够各个地方复用的类型，可以存一些比如：Line、Space、Header、LoadMoreFooter. 默认情况下，全局类型池是不会生效的，只有你调用 `adapter.applyGlobalMultiTypePool()` 使用全局类型池，它才会被应用，并加入到你当下的局部类型池中。没有调用这一行代码，全局的就不会参入你的局部类型池。也就是说，终归都是局部类型池，只是你确定使用全局的时候，它会把全局的拷贝一份，然后加入到你这个局部类型池中。
-  
-- **Q: 使用全局类型的话，只能是在 Application 中进行注册吗？**
-
-  A: 不，只是推荐这么做而已。在 `Application` 初始注册，能够确保类型在使用之前就注册好。另外，位置统一固定，有利于寻找代码。不然出了问题，你需要到处寻找是在哪注册了全局类型。注册全局的代码如果分散到各个地方，就不好控制和追寻，因此最好统一一个地方注册。换一个角度来说，注册全局类型的动作存在着约定性，约定的东西、可被破坏的东西，有时会比较不可靠，**因此能够使用局部类型池的情况，最好使用局部类型池。**
-  
-- **Q: 为什么不全然使用全局类型池？**
-
-  A: **MultiType** 最早的版本是只支持全局类型池的，因为它带来的好处诸多，但随着更多人使用，它的问题也逐渐暴露出来。一，全局类型池的注册容易分散到许多地方，这是无法约束的，会导致代码难以追寻。二，如果使用不当，可能引起内存泄漏问题，我自己是不会写出内存泄漏的代码的，但如果提供了可能性，就有很多人会趟上去。三，为了解决一对多的问题，我想了许多方案，很多几乎写好了，但都被推翻了，后来我发现，这些麻烦，都是因为一开始基于全局类型池引起的，那些方案固然都可以，但会使代码变得复杂，我不喜欢。
-  
 - **Q: 觉得 MultiType 不够精简，应该怎么做？**
 
-  A: 在前面 "设计思想" 中我们谈到：_MultiType 或许不是使用起来最简单的，但很可能是使用起来最灵活的。_其中的缘由是它高度可定制、可拓展，而不是把一些路封死。作为一个基础类库，简单和灵活需要一个均衡点，过度精简便要以失去灵活性为代价。如果觉得 **MultiType** 不够精简，想将它修改得更加容易使用，我推荐的方式是去继承 `MultiTypeAdapter` 或 `ItemViewProvider`，甚至你可以重新实现一个 `TypePool` 再设置给 `MultiTypeAdapter`. 我们不应该直接到底层去修改、破坏它们。总之，利用开放接口或继承的做法不管对于 **MultiType** 还是其它开源库，都应该是定制的首选。
+  A: 在前面 "设计思想" 中我们谈到：_MultiType 或许不是使用起来最简单的，但很可能是使用起来最灵活的。_其中的缘由是它高度可定制、可拓展，而不是把一些路封死。作为一个基础类库，简单和灵活需要一个均衡点，过度精简便要以失去灵活性为代价。如果觉得 **MultiType** 不够精简，想将它修改得更加容易使用，我推荐的方式是去继承 `MultiTypeAdapter` 或 `ItemViewBinder`，甚至你可以重新实现一个 `TypePool` 再设置给 `MultiTypeAdapter`. 我们不应该直接到底层去修改、破坏它们。总之，利用开放接口或继承的做法不管对于 **MultiType** 还是其它开源库，都应该是定制的首选。
   
-- **Q: 在 `ItemViewProvider` 中如何拿到 `Context` 对象？**
+- **Q: 在 `ItemViewBinder` 中如何拿到 `Context` 对象？**
 
-  A: 有人问我说，他在 `ItemViewProvider` 里使用 [Glide](https://github.com/bumptech/glide) 来加载图片需要获取到 Activity `Context` 对象，要怎么才能拿到 `Context` 对象？这是一个特别简单的问题，但我想既然有人问，应该比较典型，我就详细解答下：首先，在 Android 开发中，任何 `View` 对象都能通过 `view.getContext()` 拿到 `Context` 对象，这些对象本质上都是 `Activity` 对象的引用。而在我们的 `ItemViewProvider` 中，可以通过 `holder.itemView.getContext()` 获取到 `Context` 对象，也可以通过 viewHolder 的任意 `View` 对象 `getContext()` 方法拿到 `Context` 对象. `Context` 中文释义是 _"上下文对象"_，一般情况下，都是由 `Activity` 传递给 `View`s，`View`s 内部再进行传递。比如我们使用 `RecyclerView`，`Activity` 会将它的 `Context` 传递给 `RecyclerView`，`RecyclerView` 再传递给 `Adapter`，`Adapter` 再传递给 `ViewHolder` 的 `itemView`，`itemView` 再传递给它的各个子 `View`s，传递来传递去，其实都是同一个对象的引用。
+  A: 有人问我说，他在 `ItemViewBinder` 里使用 [Glide](https://github.com/bumptech/glide) 来加载图片需要获取到 Activity `Context` 对象，要怎么才能拿到 `Context` 对象？这是一个特别简单的问题，但我想既然有人问，应该比较典型，我就详细解答下：首先，在 Android 开发中，任何 `View` 对象都能通过 `view.getContext()` 拿到 `Context` 对象，这些对象本质上都是 `Activity` 对象的引用。而在我们的 `ItemViewBinder` 中，可以通过 `holder.itemView.getContext()` 获取到 `Context` 对象，也可以通过 viewHolder 的任意 `View` 对象 `getContext()` 方法拿到 `Context` 对象. `Context` 中文释义是 _"上下文对象"_，一般情况下，都是由 `Activity` 传递给 `View`s，`View`s 内部再进行传递。比如我们使用 `RecyclerView`，`Activity` 会将它的 `Context` 传递给 `RecyclerView`，`RecyclerView` 再传递给 `Adapter`，`Adapter` 再传递给 `ViewHolder` 的 `itemView`，`itemView` 再传递给它的各个子 `View`s，传递来传递去，其实都是同一个对象的引用。
   
-  总而言之，拿到 `Context` 对象非常简单，只要你能拿到一个 `View` 对象，调用 `view.getContext()` 即可。另外，也可以参考 _[与 provider 通讯](#与-viewprovider-通讯)_ 章节，我们可以很方便地给 `provider` 传递任何对象进去，包括 `Context` 对象。
+  总而言之，拿到 `Context` 对象非常简单，只要你能拿到一个 `View` 对象，调用 `view.getContext()` 即可。另外，也可以参考 _[与 binder 通讯](#与-viewbinder-通讯)_ 章节，我们可以很方便地给 `binder` 传递任何对象进去，包括 `Context` 对象。
   
-- **Q：如何在 `ItemViewProvider` 中获取到 item position？**
+- **Q：如何在 `ItemViewBinder` 中获取到 item position？**
 
-  A: 从 v2.3.5 版本开始，只需要在你的 `ItemViewProvider` 子类里调用 `getPosition(holder)` 方法即可。如果低于 v2.3.5 版本，可以调用 `holder.getAdapterPosition()` 获得同样结果。
+  A: 从 v2.3.5 版本开始，只需要在你的 `ItemViewBinder` 子类里调用 `getPosition(holder)` 方法即可。另外，`ItemViewBinder` 还提供了 `getAdapter()` 或许也是很多人想要的，比如调用 adapter 进行 notify 刷新视图等。
 
 # 感谢
 
