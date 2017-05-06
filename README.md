@@ -57,8 +57,7 @@
 
 MultiType 的源码关系：
 
-<a href="http://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg">
-<img src="http://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg"/></a>
+[![](http://ww1.sinaimg.cn/large/86e2ff85gy1ffc03rofrmj21kw12htjl.jpg)](http://ww1.sinaimg.cn/large/86e2ff85gy1ffc03rofrmj21kw12htjl.jpg)
 
 # MultiType 基础用法
 
