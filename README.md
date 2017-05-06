@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
 - 要直观，使用起来能令项目代码更清晰可读，一目了然
 
-  **MultiType** 提供的 `ItemViewBinder` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，MultiType 很多地方放弃使用反射而是让用户显式指明一些关系，如：`MultiTypeAdapter#register` 方法，需要传递一个数据模型 `class` 和 `ItemViewBinder` 对象，虽然有很多方法可以把它精简成单一参数方法，但我们认为显式声明数据模型类与对应关系，更具直观。
+  **MultiType** 提供的 `ItemViewBinder` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，MultiType 很多地方放弃使用反射而是让用户显式指明一些关系，如：`MultiTypeAdapter#register` 方法，需要传递一个数据模型 `class` 和 `ItemViewBinder` 对象，虽然有很多方法可以把它精简成单一参数方法，但我们认为显式声明数据模型类与对应关系，更具直观。
 
 
 # 高级用法
@@ -250,9 +250,9 @@ adapter.register(Data.class).to(
 
 解释：
 
-如上示例代码，对于一对多，我们需要使用 `MultiType#register(class)` 方法，它会返回一个 `OneToManyFlow` 让你紧接着绑定多个 `ItemViewBinder` 实例，最后再调用 `OneToManyEndpoint#withLinker` 或 `OneToManyEndpoint#withClassLinker` 操作符方法类设置 linker. 所谓 linker，是负责动态连接这个 "一" 对应 "多" 中哪一个 binder 的角色。
+如上示例代码，对于一对多，我们需要使用 `MultiType#register(class)` 方法，它会返回一个 `OneToManyFlow` 让你紧接着绑定多个 `ItemViewBinder` 实例，最后再调用 `OneToManyEndpoint#withLinker` 或 `OneToManyEndpoint#withClassLinker` 操作符方法类设置 linker. 所谓 linker，是负责动态连接这个 "一" 对应 "多" 中哪一个 binder 的角色。
 
-这个方案具有很好的性能表现，而且可谓十分直观。另外，我使用了 `@CheckResult` 注解来让编译器督促开发者一定要完整调用方法链才不至于出错。
+这个方案具有很好的性能表现，而且可谓十分直观。另外，我使用了 `@CheckResult` 注解来让编译器督促开发者一定要完整调用方法链才不至于出错。
 
 更详细的"一对多"示例可以参考我的 sample 源码：https://github.com/drakeet/MultiType/tree/master/sample/src/main/java/me/drakeet/multitype/sample/one2many 
 
@@ -281,7 +281,7 @@ OnClickListener listener = new OnClickListener() {
 adapter.register(Post.class, new PostViewBinder(xxx, listener));
 ```
 
-但话说回来，对于点击事件，能不依赖 `binder` 外部内容的话，最好就在 `binder` 内部完成。`binder` 内部能够拿到 Views 和 数据，大部分情况下，完全有能力不依赖外部 独立完成逻辑。这样能使代码更加模块化，实现解耦和内聚。例如下面便是一个完全自包含的例子：
+但话说回来，对于点击事件，能不依赖 `binder` 外部内容的话，最好就在 `binder` 内部完成。`binder` 内部能够拿到 Views 和 数据，大部分情况下，完全有能力不依赖外部 独立完成逻辑。这样能使代码更加模块化，实现解耦和内聚。例如下面便是一个完全自包含的例子：
 
 ```java
 public class SquareViewBinder extends ItemViewBinder<Square, SquareViewBinder.ViewHolder> {
@@ -475,7 +475,7 @@ public class HorizontalItemViewBinder
             layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
             recyclerView.setLayoutManager(layoutManager);
             /* adapter 只负责灌输、适配数据，布局交给 LayoutManager，可复用 */
-            adapter = new PostsAdapter();    // 或者直接使用 MultiTypeAdapter 更加方便
+            adapter = new PostsAdapter();    // 或者直接使用 MultiTypeAdapter 更加方便
             recyclerView.setAdapter(adapter);
             /* 在此设置横向滑动监听器，用于记录和恢复当前滑动到的位置，略 */
             ...
