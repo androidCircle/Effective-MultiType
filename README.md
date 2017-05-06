@@ -248,7 +248,7 @@ adapter.register(Data.class).to(
 
 <img src="https://cloud.githubusercontent.com/assets/5214214/25094943/e458121a-23cb-11e7-9bb6-106d6b1d8401.png" width=640/>
 
-解释：
+解释：
 
 如上示例代码，对于一对多，我们需要使用 `MultiType#register(class)` 方法，它会返回一个 `OneToManyFlow` 让你紧接着绑定多个 `ItemViewBinder` 实例，最后再调用 `OneToManyEndpoint#withLinker` 或 `OneToManyEndpoint#withClassLinker` 操作符方法类设置 linker. 所谓 linker，是负责动态连接这个 "一" 对应 "多" 中哪一个 binder 的角色。
 
