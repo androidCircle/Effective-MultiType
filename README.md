@@ -18,12 +18,12 @@
 - [设计思想](#设计思想)
 - [高级用法](#高级用法)
   - [使用 MultiTypeTemplates 插件自动生成代码](#使用-multitypetemplates-插件自动生成代码)
-  - [使用 全局类型池](#使用-全局类型池)
-  - [一个类型对应多个 ViewBinder](#一个类型对应多个-viewpbinder)
-  - [与 ViewBinder 通讯](#与-viewbinder-通讯)
+  - [使用 全局类型池](#使用-全局类型池) 
+  - []()
+  [一个类型对应多个 ItemViewBinder](#一个类型对应多个-itemviewbinder)
+  - [与 ItemViewBinder 通讯](#与-itemviewbinder-通讯)
   - [使用断言，比传统 Adapter 更加易于调试](#使用断言比传统-adapter-更加易于调试)
   - [支持 Google AutoValue](#支持-google-autovalue)
-  - [对 class 进行二级分发](#对-class-进行二级分发)
   - [MultiType 与下拉刷新、加载更多、HeaderView、FooterView、Diff](#multitype-与下拉刷新加载更多headerviewfooterviewdiff)
   - [实现 RecyclerView 嵌套横向 RecyclerView](#实现-recyclerview-嵌套横向-recyclerview)
   - [实现线性布局和网格布局混排列表](#实现线性布局和网格布局混排列表)
@@ -35,9 +35,6 @@
   - drakeet/TimeMachine
   - 类似 Bilibili iOS 端首页
 - [Q & A](#q--a)
-  - Q: 全局类型池的主要作用是什么，能取消全局的使用吗？
-  - Q: 使用全局类型的话，只能是在 Application 中进行注册吗？
-  - Q: 为什么不全然使用全局类型池？
   - Q: 觉得 MultiType 不够精简，应该怎么做？
   - Q: 在 `ItemViewBinder` 中如何拿到 `Context` 对象？
   - Q: 如何在 `ItemViewBinder` 中获取到 item position？
@@ -55,13 +52,13 @@
 
 # 总览
 
-MultiType 能轻松实现如下页面，它们将在示例篇章具体提供: 
+**MultiType** 能轻松实现如下页面，它们将在示例篇章具体提供: 
 
 ![](http://ww4.sinaimg.cn/large/86e2ff85gw1f9mqd8lwzkj21hc0f8n4k.jpg)
 
 MultiType 的源码关系：
 
-[![](https://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg)](https://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg)
+[![](http://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg)](http://ws1.sinaimg.cn/large/86e2ff85gy1ffbsh6kn4fj233r23l4qp.jpg)
 
 # MultiType 基础用法
 
@@ -261,7 +258,6 @@ adapter.register(Data.class).to(
 如果你使用 Lambda 表达式，以上代码可以更简洁：
 
 <img src="https://cloud.githubusercontent.com/assets/5214214/25094943/e458121a-23cb-11e7-9bb6-106d6b1d8401.png" width=640/>
-
 
 解释：
 
