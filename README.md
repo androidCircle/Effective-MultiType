@@ -370,7 +370,7 @@ public class SimpleActivity extends MenuBaseActivity {
 
 ## FlatTypeAdapter(已废弃)
 
-MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个类已经被删除了，你可以完全不必关系它。如果你使用过它，现在它已经被一对多方案替代了，请转成使用一对多功能实现。
+MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个类已经被删除了，你可以完全不必关心它。如果你使用过它，现在它已经被一对多方案替代了，请转成使用一对多功能实现。
 
 ## MultiType 与下拉刷新、加载更多、HeaderView、FooterView、Diff
 
