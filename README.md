@@ -69,7 +69,7 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:3.0.0'
+    compile 'me.drakeet.multitype:multitype:3.1.0'
 }
 ```
 
@@ -77,7 +77,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:3.0.0', {
+    compile('me.drakeet.multitype:multitype:3.1.0', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
