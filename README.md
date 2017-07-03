@@ -679,7 +679,7 @@ adapter.notifyDataSetChanged();
   
 - **Q：如何在 `ItemViewBinder` 中获取到 item position？**
 
-  A: 从 v2.3.5 版本开始，只需要在你的 `ItemViewBinder` 子类里调用 `getPosition(holder)` 方法即可。另外，`ItemViewBinder` 还提供了 `getAdapter()` 或许也是很多人想要的，比如调用 adapter 进行 notify 刷新视图等。
+  A: 从 v2.3.5 版本开始，只需要在你的 `ItemViewBinder` 子类里调用 `getPosition(holder)` 方法即可。另外，`ItemViewBinder` 还提供了 `getAdapter()` 或许也是很多人想要的，比如调用 adapter 进行 notify 刷新视图等。
 
 # 感谢
 
