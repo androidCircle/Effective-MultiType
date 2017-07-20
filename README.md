@@ -1,10 +1,10 @@
 # 前言
 
-在开发我的 **[TimeMachine](https://github.com/drakeet/TimeMachine)** 时，我有一个复杂的聊天页面，于是我设计了我的类型池系统，它是完全解耦的，因此我能够轻松将它抽离出来分享，并给它取名为 **MultiType**.
+在开发我的 **[TimeMachine](https://github.com/drakeet/TimeMachine)** 时，我有一个复杂的聊天页面，于是我设计了我的类型池系统，它是完全解耦的，我能够轻松将它抽离出来分享，并给它取名为 **MultiType**.
 
 从前，**比如我们写一个类似微博列表页面**，这样的列表是十分复杂的：有纯文本的、带转发原文的、带图片的、带视频的、带文章的等等，甚至穿插一条可以横向滑动的好友推荐条目。不同的 item 类型众多，而且随着业务发展，还会更多。如果我们使用传统的开发方式，经常要做一些繁琐的工作，代码可能都堆积在一个 `Adapter` 中：我们需要覆写 `RecyclerView.Adapter` 的 `getItemViewType` 方法，罗列一些 `type` 整型常量，并且 `ViewHolder` 转型、绑定数据也比较麻烦。一旦产品需求有变，或者产品设计说需要增加一种新的 item 类型，我们需要去代码堆里找到原来的逻辑去修改，或找到正确的位置去增加代码。这些过程都比较繁琐，侵入较强，需要小心翼翼，以免改错影响到其他地方。
 
-现在好了，我们有了 **MultiType**，简单来说，**MultiType 就是一个多类型列表视图的中间分发框架，它能帮助你快速并且清晰地开发一些复杂的列表页面。** 它本是为聊天页面开发的，聊天页面的消息类型也是有大量不同种类，且新增频繁，而 **MultiType** 能够轻松胜任。
+现在好了，我们有了 **MultiType**，简单来说，**MultiType 就是一个多类型列表视图的中间分发框架，它能帮助你快速并且清晰地开发一些复杂的列表页面，数据驱动视图。** 它本是为聊天页面开发的，聊天页面的消息类型也是有大量不同种类，且新增频繁，而 **MultiType** 能够轻松胜任。
 
 **MultiType** 以灵活直观为第一宗旨进行设计，它内建了 `类型` - `View` 的复用池系统，支持 `RecyclerView`，随时可拓展新的类型进入列表当中，使用简单，令代码清晰、模块化、灵活可变。
 
@@ -43,7 +43,7 @@
 # MultiType 的特性
 
 - 轻盈，整个类库只有 14 个类文件，`aar` 或 `jar` 包大小只有 13 KB
-- 周到，支持 data type `<-->` item view binder 之间 一对一 和 一对多 的关系绑定
+- 周到，支持 data type `<-->` item view binder 之间 一对一 和 **一对多** 的关系绑定
 - 灵活，几乎所有的部件(类)都可被替换、可继承定制，面向接口 / 抽象编程
 - 纯粹，只负责本分工作，专注多类型的列表视图 类型分发，绝不会去影响 views 的内容或行为
 - 高效，没有性能损失，内存友好，最大限度发挥 `RecyclerView` 的复用性
@@ -57,7 +57,7 @@
 
 MultiType 的源码关系：
 
-[![](http://ww1.sinaimg.cn/large/86e2ff85gy1ffc03rofrmj21kw12htjl.jpg)](http://ww1.sinaimg.cn/large/86e2ff85gy1ffc03rofrmj21kw12htjl.jpg)
+[![](http://ww1.sinaimg.cn/large/86e2ff85gy1fhq79brqjzj21kw12hhdt.jpg)](http://ww1.sinaimg.cn/large/86e2ff85gy1fhq79brqjzj21kw12hhdt.jpg)
 
 # MultiType 基础用法
 
@@ -84,6 +84,9 @@ dependencies {
 }
 ```
 
+_Note: MultiType does not support RecyclerView below version 23.0.0._
+
+
 ## 使用
 
 **Step 1**. 创建一个 `class`，它将是你的数据类型或 Java bean / model. 对这个类的内容没有任何限制。示例如下：
@@ -101,11 +104,10 @@ public class Category {
 
 **Step 2**. 创建一个 `class` 继承 `ItemViewBinder`. 
 
- `ItemViewBinder` 是个抽象类，其中 `onCreateViewHolder` 方法用于生产你的 Item View Holder, `onBindViewHolder` 用于绑定数据到 `View`s. 一般一个 `ItemViewBinder` 类在内存中只会有一个实例对象，MultiType 内部将复用这个 binder 对象来生产所有相关的 item views 和绑定数据。示例：
+ `ItemViewBinder` 是个抽象类，其中 `onCreateViewHolder` 方法用于生产你的 item view holder, `onBindViewHolder` 用于绑定数据到 `View`s. 一般一个 `ItemViewBinder` 类在内存中只会有一个实例对象，**MultiType** 内部将复用这个 binder 对象来生产所有相关的 item views 和绑定数据。示例：
 
 ```java
-public class CategoryViewBinder
-    extends ItemViewBinder<Category, CategoryViewBinder.ViewHolder> {
+public class CategoryViewBinder extends ItemViewBinder<Category, CategoryViewBinder.ViewHolder> {
 
     @NonNull @Override
     protected ViewHolder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
@@ -145,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list);
+        /* 注意：我们已经在 XML 布局中通过 app:layoutManager="LinearLayoutManager"
+         * 给这个 RecyclerView 指定了 LayoutManager，因此此处无需再设置 */
 
         adapter = new MultiTypeAdapter();
 
@@ -158,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         items = new Items();
         for (int i = 0; i < 20; i++) {
             items.add(new Category("Songs"));
-            items.add(new Song("小艾大人", R.drawable.avatar_dakeet));
+            items.add(new Song("drakeet", R.drawable.avatar_dakeet));
             items.add(new Song("许岑", R.drawable.avatar_cen));
         }
         adapter.setItems(items);
@@ -176,15 +180,15 @@ public class MainActivity extends AppCompatActivity {
 
 - 要简单，便于他人阅读代码
 
-  因此我极力避免将它复杂化，避免加入许多不相干的内容。我想写人人可读的代码，使用简单的方式，去实现复杂的需求。过多不相干、没必要的代码，将会使项目变得令人晕头转向，难以阅读，遇到需要定制、解决问题的时候，无从下手。
+  因此我极力避免将它复杂化，避免加入许多不相干的内容。我想写人人可读的代码，使用简单精巧的方式，去实现复杂的需求。过多不相干、没必要的代码，将会使项目变得令人晕头转向，难以阅读，遇到需要定制、解决问题的时候，无从下手。
 
 - 要灵活，便于拓展和适应各种需求
 
-  很多人会得意地告诉我，他们把 **MultiType** 源码精简成三四个类，甚至一个类，以为代码越少就是越好，这我不能赞同。**MultiType** 考虑得更远，这是一个提供给大众使用的类库，过度的精简只会使得大幅失去灵活性。**它或许不是使用起来最简单的，但很可能是使用起来最灵活的。** 在我看来，"直观"、"灵活"优先级大于"简单"。因此，**MultiType** 以接口或抽象进行连接，这意味着它的角色、组件都可以被替换，或者被拓展和继承。如果你觉得它使用起来还不够简单，完全可以通过继承封装出更具体符合你使用需求的方法。它已经暴露了足够丰富、周到的接口以供拓展，我们不应该直接去修改源码，这会导致一旦后续发现你的精简版满足不了你的需求时，已经没有回头路了。
+  很多人会得意地告诉我，他们把 **MultiType** 源码精简成三四个类，甚至一个类，以为代码越少就是越好，这我不能赞同。**MultiType** 考虑得更远，这是一个提供给大众使用的类库，过度的精简只会使得大幅失去灵活性。**它或许不是使用起来最简单的，但很可能是使用起来最灵活的，均衡性最好的。** 在我看来，"直观"、"灵活"优先级大于"简单"。因此，**MultiType** 以接口或抽象进行连接，这意味着它的角色、组件都可以被替换，或者被拓展和继承。如果你觉得它使用起来还不够简单，完全可以通过继承封装出更具体符合你使用需求的方法。它已经暴露了足够丰富、周到的接口以供拓展，我们不应该直接去修改源码，这会导致一旦后续发现你的精简版满足不了你的需求时，已经没有回头路了。
 
 - 要直观，使用起来能令项目代码更清晰可读，一目了然
 
-  **MultiType** 提供的 `ItemViewBinder` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，MultiType 很多地方放弃使用反射而是让用户显式指明一些关系，如：`MultiTypeAdapter#register` 方法，需要传递一个数据模型 `class` 和 `ItemViewBinder` 对象，虽然有很多方法可以把它精简成单一参数方法，但我们认为显式声明数据模型类与对应关系，更具直观。
+  **MultiType** 提供的 `ItemViewBinder` 沿袭了 `RecyclerView Adapter` 的接口命名，使用起来更加舒适，符合习惯。另外，MultiType 很多地方放弃使用反射而是让用户**显式**指明一些关系，如：`MultiTypeAdapter#register` 方法，需要传递一个数据模型 `class` 和 `ItemViewBinder` 对象，虽然有很多方法可以把它精简成单一参数方法，但我们认为显式声明数据模型类与对应关系，更加直观。
 
 
 # 高级用法
@@ -213,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
 
 ## 一个类型对应多个 `ItemViewBinder`
 
-**MultiType** 天然支持一个类型对应多个 `ItemViewBinder`，注册方式也很简单，如下：
+**MultiType** 支持一个类型对应多个 `ItemViewBinder`，首创了具有良好 API 且高性能的一对多 Link 模型。使用方式也很简单直观，如下：
 
 ```java
 adapter.register(Data.class).to(
@@ -240,13 +244,13 @@ adapter.register(Data.class).to(
 ).withLinker(new Linker<Data>() {
     @Override
     public int index(@NonNull Data data) {
-        if (data.type == Data.TYPE_2) { return 1; } else return 0;
+        return data.type == Data.TYPE_2 ? 1 : 0;
     }
 });
 ```
 如果你使用 Lambda 表达式，以上代码可以更简洁：
 
-<img src="https://cloud.githubusercontent.com/assets/5214214/25094943/e458121a-23cb-11e7-9bb6-106d6b1d8401.png" width=640/>
+<img src="https://github.com/drakeet/MultiType/raw/3.x/art/sample-one2many.png" width=640/>
 
 解释：
 
@@ -287,8 +291,7 @@ adapter.register(Post.class, new PostViewBinder(xxx, listener));
 public class SquareViewBinder extends ItemViewBinder<Square, SquareViewBinder.ViewHolder> {
 
     @NonNull @Override
-    protected ViewHolder onCreateViewHolder(
-        @NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+    protected ViewHolder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
         View root = inflater.inflate(R.layout.item_square, parent, false);
         return new ViewHolder(root);
     }
@@ -309,7 +312,8 @@ public class SquareViewBinder extends ItemViewBinder<Square, SquareViewBinder.Vi
             super(itemView);
             squareView = (TextView) itemView.findViewById(R.id.square);
             itemView.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View v) {
+                @Override 
+                public void onClick(View v) {
                     itemView.setSelected(square.isSelected = !square.isSelected);
                 }
             });
@@ -331,7 +335,8 @@ public class SimpleActivity extends MenuBaseActivity {
     private Items items;
     private MultiTypeAdapter adapter;
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override 
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.list);
@@ -376,7 +381,7 @@ MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个�
 
 **MultiType** 设计从始至终，都极力避免往复杂化方向发展，一开始我的设计宗旨就是它应该是一个非常纯粹的、专一的项目，而非各种乱七八糟的功能都要囊括进来的多合一大型库，因此它很克制，期间有许多人给我发过一些无关特性的 Pull Request，表示感谢，但全被拒绝了。
 
-对于很多人关心的 下拉刷新、加载更多、HeaderView、FooterView、Diff 这些功能特性，其实都不应该是 **MultiType** 的范畴，**MultiType** 的分内之事是做类型、事件与 View 的分发、连接工作，其余无关的需求，都是可以在 **MultiType** 外部完成，或者通过继承 进行自行封装和拓展，而作为一个基础、公共类库，我想它是不应该包含这些内容。
+对于很多人关心的 下拉刷新、加载更多、HeaderView、FooterView、Diff 这些功能特性，其实都不应该是 **MultiType** 的范畴，**MultiType 的分内之事是做类型、事件与 View 的分发、连接工作**，其余无关的需求，都是可以在 **MultiType** 外部完成，或者通过继承 进行自行封装和拓展，而作为一个基础、公共类库，我想它是不应该包含这些内容。
 
 但很多新手可能并不习惯代码分工、模块化，因此在此我有必要对这几个点简单示范下如何在 **MultiType** 之外去实现：
 
@@ -422,7 +427,7 @@ MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个�
 
 - **获取数据后做 Diff 更新：**
 
-  **MultiType** 支持 onBindViewHolder with payloads，详情见 `ItemViewBinder` 类文档。对于 Diff，可以在 `Activity` 中进行 Diff，或者继承 `MultiTypeAdapter` 提供接收数据方法，在方法中进行 Diff. **MultiType** 不提供内置 Diff 方案，不然需要依赖 v4 包，并且这也不应该属于它的范畴。
+  **MultiType** 支持 onBindViewHolder with `payloads`，详情见 `ItemViewBinder` 类文档。对于 Diff，可以在 `Activity` 中进行 Diff，或者继承 `MultiTypeAdapter` 提供接收数据方法，在方法中进行 Diff. **MultiType** 不提供内置 Diff 方案，不然需要依赖 v4 包，并且这也不应该属于它的范畴。
   
   示例代码：https://github.com/drakeet/MultiType/issues/56
   
@@ -440,19 +445,17 @@ public class PostList {
     public final List<Post> posts;
     public int currentPosition;
 
-    public PostList(@NonNull List<Post> posts) {this.posts = posts;}
+    public PostList(@NonNull List<Post> posts) { this.posts = posts; }
 }
 ```
 
 对应的 `HorizontalItemViewBinder` 类似这样：
 
 ```java
-public class HorizontalItemViewBinder
-    extends ItemViewBinder<PostList, HorizontalItemViewBinder.ViewHolder> {
+public class HorizontalItemViewBinder extends ItemViewBinder<PostList, HorizontalItemViewBinder.ViewHolder> {
 
     @NonNull @Override
-    protected ViewHolder onCreateViewHolder(
-        @NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+    protected ViewHolder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
         /* item_horizontal_list 就是一个只有 RecyclerView 的布局 */
         View view = inflater.inflate(R.layout.item_horizontal_list, parent, false);
         return new ViewHolder(view);
@@ -510,7 +513,7 @@ public class MultiGridActivity extends MenuBaseActivity {
         final GridLayoutManager layoutManager = new GridLayoutManager(this, SPAN_COUNT);
         
         /* 关键内容：通过 setSpanSizeLookup 来告诉布局，你的 item 占几个横向单位，
-           如果你横向有 5 个单位，而你返回当前 item 占用 5 个单位，那么它就会看起来单独占用一行 */
+         * 如果你横向有 5 个单位，而你返回当前 item 占用 5 个单位，那么它就会看起来单独占用一行 */
         layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
