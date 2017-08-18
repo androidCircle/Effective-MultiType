@@ -1,6 +1,6 @@
 # 前言
 
-> MultiType 这个项目，至今 v3.1.0 稳定多时，考虑得非常多，但也做得非常克制。原则一直是 直观、灵活、可靠、简单纯粹（其中直观和灵活是非常看重的）。
+> MultiType 这个项目，至今 v3.x 稳定多时，考虑得非常多，但也做得非常克制。原则一直是 直观、灵活、可靠、简单纯粹（其中直观和灵活是非常看重的）。
 
 在开发我的 **[TimeMachine](https://github.com/drakeet/TimeMachine)** 时，我有一个复杂的聊天页面，于是我设计了我的类型池系统，它是完全解耦的，我能够轻松将它抽离出来分享，并给它取名为 **MultiType**.
 
@@ -71,7 +71,7 @@ MultiType 的源码关系：
 
 ```groovy
 dependencies {
-    compile 'me.drakeet.multitype:multitype:3.1.0'
+    compile 'me.drakeet.multitype:multitype:3.3.0'
 }
 ```
 
@@ -79,7 +79,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    compile('me.drakeet.multitype:multitype:3.1.0', {
+    compile('me.drakeet.multitype:multitype:3.3.0', {
        exclude group: 'com.android.support'
     })
     compile 'com.android.support:recyclerview-v7:你选择的版本'
@@ -659,26 +659,7 @@ adapter.notifyDataSetChanged();
   
 - **Q: 在 `ItemViewBinder` 中如何拿到 `Context` 对象？**
 
-  A: 有人问我说，他在 `ItemViewBinder` 里使用 [Glide](https://github.com/bumptech/glide) 来加载图片需要获取到 Activity `Context` 对象，要怎么才能拿到 `Context` 对象？这是一个特别简单的问题，但我想既然有人问，应该比较典型，我就详细解答下：首先，在 Android 开发中，任何 `View` 对象都能通过 `view.getContext()` 拿到 `Context` 对象，如果你需要通过 View 拿到 Activity 对象，并且你使用了 `AppCompatActivity`，那么建议你这么做：
-
-  ```java
-  public class Activities {
-  
-      public static Activity getActivity(View view) {
-          Context context = view.getContext();
-          while (context instanceof ContextWrapper) {
-              if (context instanceof Activity) {
-                  return (Activity) context;
-              }
-              context = ((ContextWrapper) context).getBaseContext();
-          }
-          return null;
-      }
-  }
-  
-  Glide.with(getActivity(view)) ...
-  ```
-  原因及相关 issue：https://github.com/drakeet/MultiType/issues/152
+  A: 有人问我说，他在 `ItemViewBinder` 里使用 [Glide](https://github.com/bumptech/glide) 来加载图片需要获取到 Activity `Context` 对象，要怎么才能拿到 `Context` 对象？这是一个特别简单的问题，但我想既然有人问，应该比较典型，我就详细解答下：首先，在 Android 开发中，任何 `View` 对象都能通过 `view.getContext()` 拿到 `Context` 对象，如果你需要通过 View 拿到 Activity 对象。
   
   总而言之，拿到 `Context` 对象非常简单，只要你能拿到一个 `View` 对象，调用 `view.getContext()` 即可。另外，也可以参考 _[与 binder 通讯](#与-viewbinder-通讯)_ 章节，我们可以很方便地给 `binder` 传递任何对象进去，包括 `Context` 对象。
   
