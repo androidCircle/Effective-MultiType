@@ -431,8 +431,8 @@ MultiType 3.0 之前提供了一个 `FlatTypeAdapter` 类，3.0 之后，这个�
 
   **MultiType** 支持 onBindViewHolder with `payloads`，详情见 `ItemViewBinder` 类文档。对于 Diff，可以在 `Activity` 中进行 Diff，或者继承 `MultiTypeAdapter` 提供接收数据方法，在方法中进行 Diff. **MultiType** 不提供内置 Diff 方案，不然需要依赖 v4 包，并且这也不应该属于它的范畴。
   
-  示例代码：https://github.com/drakeet/MultiType/issues/56
-  
+  另外，MultiType 提供了 itemId 与支持 RecyclerView stableId，可以非常轻易做到完美自动 diff，详情参考：`RecyclerView.Adapter.setHasStableIds`
+  
 - **HeaderView、FooterView**
 
   **MultiType** 其实本身就支持 `HeaderView`、`FooterView`，只要创建一个 `Header.class` - `HeaderViewBinder` 和 `Footer.class` - `FooterViewBinder` 即可，然后把 `new Header()` 添加到 `items` 第一个位置，把 `new Footer()` 添加到 `items` 最后一个位置。需要注意的是，如果使用了 Footer View，在底部插入数据的时候，需要添加到 `最后位置 - 1`，即倒二个位置，或者把 `Footer` remove 掉，再添加数据，最后再插入一个新的 `Footer`.
